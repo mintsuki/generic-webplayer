@@ -17,6 +17,8 @@
 
 int main(int argc, char *argv[])
 {
+    QApplication a(argc, argv);
+
     const char *baseUrl;
     if (argc > 1) {
         baseUrl = argv[1];
@@ -29,12 +31,12 @@ int main(int argc, char *argv[])
             QMessageBox::critical(nullptr, "Application running",
                                            "Another instance of @@player_nice_name@@ was detected running.",
                                            QMessageBox::Ok);
-            QCoreApplication::exit(1);
+            exit(1);
         } else {
             FILE *lock = fopen(LOCK_FNAME, "w");
             if (lock == nullptr) {
                 // Something happened
-                QCoreApplication::exit(1);
+                exit(2);
             }
             fclose(lock);
         }
@@ -47,7 +49,6 @@ int main(int argc, char *argv[])
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, nullptr);
 
-    QApplication a(argc, argv);
     player w(baseUrl);
     w.show();
 
