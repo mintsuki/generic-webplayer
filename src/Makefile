@@ -11,11 +11,11 @@ clean:
 
 install:
 	install -d ${PREFIX}/bin
-	install -s build/@@player_name@@ ${PREFIX}/bin/@@player_name@@-player
+	install -s build/@@player_name@@ ${PREFIX}/bin/@@player_name@@
 	install -d ${PREFIX}/share/icons
-	install -m 644 player.icon ${PREFIX}/share/icons/@@player_name@@-player.icon
+	install -m 644 player.icon ${PREFIX}/share/icons/@@player_name@@.icon
 	install -d ${PREFIX}/share/applications
-	install -m 644 player.desktop ${PREFIX}/share/applications/@@player_name@@-player.desktop
+	install -m 644 player.desktop ${PREFIX}/share/applications/@@player_name@@.desktop
 
 uninstall:
 	rm -f ${PREFIX}/bin/@@player_name@@-player
