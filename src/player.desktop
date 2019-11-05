@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=@@player_nice_name@@
-Exec=@@prefix@@/bin/@@player_name@@-player
-Icon=@@prefix@@/share/icons/@@player_name@@-player.icon
+Exec=@@prefix@@/bin/@@player_name@@
+Icon=@@prefix@@/share/icons/@@player_name@@.icon
 Terminal=false
 Type=Application
 Categories=Network;

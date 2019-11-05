@@ -18,6 +18,6 @@ install:
 	install -m 644 player.desktop ${PREFIX}/share/applications/@@player_name@@.desktop
 
 uninstall:
-	rm -f ${PREFIX}/bin/@@player_name@@-player
-	rm -f ${PREFIX}/share/icons/@@player_name@@-player.icon
-	rm -f ${PREFIX}/share/applications/@@player_name@@-player.desktop
+	rm -f ${PREFIX}/bin/@@player_name@@
+	rm -f ${PREFIX}/share/icons/@@player_name@@.icon
+	rm -f ${PREFIX}/share/applications/@@player_name@@.desktop
