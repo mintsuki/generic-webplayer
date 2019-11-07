@@ -56,6 +56,8 @@ int main(int argc, char *argv[])
     w->show();
 
     int ret = a.exec();
+
+    delete w;
     remove(LOCK_FNAME);
     return ret;
 }
