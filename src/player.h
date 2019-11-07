@@ -3,8 +3,6 @@
 
 #include <QMainWindow>
 #include <QWebEnginePage>
-#include <QWebEngineView>
-#include <QMessageBox>
 
 class PlayerPage : public QWebEnginePage {
     Q_OBJECT

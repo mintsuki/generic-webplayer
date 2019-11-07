@@ -1,6 +1,5 @@
 #include "player.h"
 #include <QApplication>
-#include <QFile>
 #include <QMessageBox>
 #include <string>
 #include <unistd.h>

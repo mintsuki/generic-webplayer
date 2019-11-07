@@ -5,9 +5,7 @@
 #include <QWebEngineScriptCollection>
 #include <QWebEngineSettings>
 #include <QDesktopServices>
-#include <QStandardPaths>
-#include <QDir>
-#include <QFile>
+#include <QMessageBox>
 
 static const char *baseUrl;
 
