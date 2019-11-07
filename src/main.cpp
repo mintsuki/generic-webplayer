@@ -18,9 +18,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    player *w;
+
     const char *baseUrl;
     if (argc > 1) {
         baseUrl = argv[1];
+        w = new player(baseUrl, false);
     } else {
         baseUrl = "@@webapp_url@@";
 
@@ -39,6 +42,8 @@ int main(int argc, char *argv[])
             }
             fclose(lock);
         }
+
+        w = new player(baseUrl, true);
     }
 
     // Hook lock for SIGINT, so in case of Ctrl+C or similar we delete the lock.
@@ -48,8 +53,7 @@ int main(int argc, char *argv[])
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, nullptr);
 
-    player w(baseUrl);
-    w.show();
+    w->show();
 
     int ret = a.exec();
     remove(LOCK_FNAME);

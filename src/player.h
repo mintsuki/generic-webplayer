@@ -22,7 +22,7 @@ class player : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit player(const char *baseUrl, QWidget *parent = nullptr);
+    explicit player(const char *baseUrl, bool openBrowser, QWidget *parent = nullptr);
     ~player();
 
 private slots:

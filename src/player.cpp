@@ -8,6 +8,7 @@
 #include <QMessageBox>
 
 static const char *baseUrl;
+static bool openBrowser;
 
 static PlayerPage *globalPageToGetClickUrl;
 
@@ -23,7 +24,7 @@ bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Naviga
     qDebug() << "acceptNavigationRequest url: " << url << " type: " << type << " isMainFrame: " << isMainFrame;
     if (isMainFrame) {
         // Exception for base link
-        if (url == QUrl(baseUrl))
+        if (openBrowser == false || url == QUrl(baseUrl))
             goto pass;
         QDesktopServices::openUrl(url);
         return false;
@@ -33,11 +34,12 @@ pass:
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }
 
-player::player(const char *baseUrl_arg, QWidget *parent) :
+player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::player)
 {
     baseUrl = baseUrl_arg;
+    openBrowser = openBrowser_arg;
 
     ui->setupUi(this);
 
