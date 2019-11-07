@@ -18,32 +18,20 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    player *w;
-
-    const char *baseUrl;
-    if (argc > 1) {
-        baseUrl = argv[1];
-        w = new player(baseUrl, false);
+    // Check the lock for other open instances
+    if (access(LOCK_FNAME, F_OK) != -1) {
+        // The lock is already acquired
+        QMessageBox::critical(nullptr, "Application running",
+                                       "Another instance of @@player_nice_name@@ was detected running.",
+                                       QMessageBox::Ok);
+        return 1;
     } else {
-        baseUrl = "@@webapp_url@@";
-
-        // Check the lock for other open instances
-        if (access(LOCK_FNAME, F_OK) != -1) {
-            // The lock is already acquired
-            QMessageBox::critical(nullptr, "Application running",
-                                           "Another instance of @@player_nice_name@@ was detected running.",
-                                           QMessageBox::Ok);
-            exit(1);
-        } else {
-            FILE *lock = fopen(LOCK_FNAME, "w");
-            if (lock == nullptr) {
-                // Something happened
-                exit(2);
-            }
-            fclose(lock);
+        FILE *lock = fopen(LOCK_FNAME, "w");
+        if (lock == nullptr) {
+            // Something happened
+            return 2;
         }
-
-        w = new player(baseUrl, true);
+        fclose(lock);
     }
 
     // Hook lock for SIGINT, so in case of Ctrl+C or similar we delete the lock.
@@ -53,8 +41,17 @@ int main(int argc, char *argv[])
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, nullptr);
 
-    w->show();
+    player *w;
+    const char *baseUrl;
+    if (argc > 1) {
+        baseUrl = argv[1];
+        w = new player(baseUrl, false);
+    } else {
+        baseUrl = "@@webapp_url@@";
+        w = new player(baseUrl, true);
+    }
 
+    w->show();
     int ret = a.exec();
 
     delete w;
