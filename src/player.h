@@ -30,6 +30,8 @@ private slots:
     void on_webEngineView_iconChanged(const QIcon &arg1);
     void grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f);
 
+    void on_lineEdit_returnPressed();
+
 private:
     Ui::player *ui;
 };
