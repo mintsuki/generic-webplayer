@@ -34,6 +34,7 @@ private slots:
 
 private:
     Ui::player *ui;
+    PlayerPage *buildPage(const QString &profile);
 };
 
 #endif // PLAYER_H

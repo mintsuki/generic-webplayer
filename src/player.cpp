@@ -7,19 +7,6 @@
 #include <QWebEngineProfile>
 #include <QDesktopServices>
 #include <QMessageBox>
-#include <libgen.h>
-
-#define GET_PROFILE_NAME    ({ \
-    QString persistentStoragePath = ui->webEngineView->page()->profile()->persistentStoragePath(); \
-    QString(basename((char*)persistentStoragePath.toStdString().c_str())); \
-})
-#define SET_PROFILE_NAME(p) ({ \
-    QString persistentStoragePath = ui->webEngineView->page()->profile()->persistentStoragePath(); \
-    QString newPersistentStoragePath = QString(dirname((char*)persistentStoragePath.toStdString().c_str())) + QString("/") + (p); \
-    ui->webEngineView->page()->profile()->setPersistentStoragePath(newPersistentStoragePath); \
-    qDebug() << "qtwebengine profile persistent storage set to:" << newPersistentStoragePath; \
-    0; \
-})
 
 static const char *baseUrl;
 static bool openBrowser;
@@ -48,38 +35,45 @@ pass:
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }
 
-player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::player)
-{
-    baseUrl = baseUrl_arg;
-    openBrowser = openBrowser_arg;
+PlayerPage *player::buildPage(const QString &profile) {
+    QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
+    PlayerPage *newPage = new PlayerPage(newProfile);
 
-    ui->setupUi(this);
+    newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
-    globalPageToGetClickUrl = new PlayerPage();
-
-    PlayerPage *DPage = new PlayerPage();
-    ui->webEngineView->setPage(DPage);
-
-    showMaximized();
-
-    connect(ui->webEngineView->page(),
+    connect(newPage,
             SIGNAL(featurePermissionRequested(const QUrl &, QWebEnginePage::Feature)),
             this,
             SLOT(grantFeaturePermission(const QUrl &, QWebEnginePage::Feature)));
 
-    ui->webEngineView->page()->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
+    return newPage;
+}
 
-    ui->lineEdit->setText(GET_PROFILE_NAME);
+player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::player)
+{
+    ui->setupUi(this);
 
+    baseUrl = baseUrl_arg;
+    openBrowser = openBrowser_arg;
+    globalPageToGetClickUrl = new PlayerPage();
+
+    showMaximized();
+
+    ui->lineEdit->setText("Default");
+    PlayerPage *newPage = buildPage(ui->lineEdit->text());
+    ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 }
 
 player::~player()
 {
     delete globalPageToGetClickUrl;
-    delete ui->webEngineView->page();
+    PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
+    QWebEngineProfile *oldProfile = oldPage->profile();
+    delete oldPage;
+    delete oldProfile;
     delete ui;
 }
 
@@ -113,10 +107,12 @@ void player::on_webEngineView_iconChanged(const QIcon &arg1) {
 
 void player::on_lineEdit_returnPressed() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-    oldPage->setUrl(QUrl("about:blank"));
-    PlayerPage *DPage = new PlayerPage();
-    ui->webEngineView->setPage(DPage);
-    SET_PROFILE_NAME(ui->lineEdit->text());
+    QWebEngineProfile *oldProfile = oldPage->profile();
+
+    PlayerPage *newPage = buildPage(ui->lineEdit->text());
+    ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
+
     delete oldPage;
+    delete oldProfile;
 }
