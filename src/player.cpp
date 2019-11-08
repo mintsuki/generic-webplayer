@@ -113,9 +113,10 @@ void player::on_webEngineView_iconChanged(const QIcon &arg1) {
 
 void player::on_lineEdit_returnPressed() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
+    oldPage->setUrl(QUrl("about:blank"));
     PlayerPage *DPage = new PlayerPage();
     ui->webEngineView->setPage(DPage);
     SET_PROFILE_NAME(ui->lineEdit->text());
-    delete oldPage;
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
+    delete oldPage;
 }
