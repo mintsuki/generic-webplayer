@@ -4,14 +4,17 @@
 #include <QMainWindow>
 #include <QWebEnginePage>
 
+class player;
+
 class PlayerPage : public QWebEnginePage {
     Q_OBJECT
 public:
-    PlayerPage(QWebEngineProfile *profile, QObject *parent = Q_NULLPTR);
-    PlayerPage(QObject *parent = Q_NULLPTR);
+    explicit PlayerPage(player *parentPlayer, QWebEngineProfile *profile, QObject *parent = Q_NULLPTR);
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
     bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) override;
+private:
+    player *parentPlayer;
 };
 
 namespace Ui {
@@ -24,6 +27,10 @@ class player : public QMainWindow {
 public:
     explicit player(const char *baseUrl, bool openBrowser, QWidget *parent = nullptr);
     ~player();
+
+    PlayerPage *globalPageToGetClickUrl;
+    const char *baseUrl;
+    bool openBrowser;
 
 private slots:
     void on_webEngineView_titleChanged(const QString &title);

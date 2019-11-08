@@ -8,24 +8,20 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 
-static const char *baseUrl;
-static bool openBrowser;
-
-static PlayerPage *globalPageToGetClickUrl;
-
-PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
-PlayerPage::PlayerPage(QObject *parent) : QWebEnginePage(parent) {}
+PlayerPage::PlayerPage(player *parentPlayer, QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {
+    this->parentPlayer = parentPlayer;
+}
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
-    return globalPageToGetClickUrl;
+    return parentPlayer->globalPageToGetClickUrl;
 }
 
 bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
     qDebug() << "acceptNavigationRequest url: " << url << " type: " << type << " isMainFrame: " << isMainFrame;
     if (isMainFrame) {
         // Exception for base link
-        if (openBrowser == false || url == QUrl(baseUrl))
+        if (parentPlayer->openBrowser == false || url == QUrl(parentPlayer->baseUrl))
             goto pass;
         QDesktopServices::openUrl(url);
         return false;
@@ -37,7 +33,7 @@ pass:
 
 PlayerPage *player::buildPage(const QString &profile) {
     QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
-    PlayerPage *newPage = new PlayerPage(newProfile);
+    PlayerPage *newPage = new PlayerPage(this, newProfile);
 
     newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
@@ -57,7 +53,8 @@ player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
 
     baseUrl = baseUrl_arg;
     openBrowser = openBrowser_arg;
-    globalPageToGetClickUrl = new PlayerPage();
+    QWebEngineProfile *newProfile = new QWebEngineProfile();
+    globalPageToGetClickUrl = new PlayerPage(this, newProfile);
 
     showMaximized();
 
@@ -69,9 +66,11 @@ player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
 
 player::~player()
 {
+    QWebEngineProfile *oldProfile = globalPageToGetClickUrl->profile();
     delete globalPageToGetClickUrl;
+    delete oldProfile;
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-    QWebEngineProfile *oldProfile = oldPage->profile();
+    oldProfile = oldPage->profile();
     delete oldPage;
     delete oldProfile;
     delete ui;
