@@ -37,6 +37,7 @@ void player::refreshProfileList() {
     QString profilesPath(dirname((char *)(ui->webEngineView->page()->profile()->persistentStoragePath().toStdString().c_str())));
     QDir profilesDir(profilesPath);
     QStringList profiles = profilesDir.entryList();
+    ui->listWidget->clear();
     foreach (QString profile, profiles) {
         if (profile == "." || profile == "..")
             continue;
