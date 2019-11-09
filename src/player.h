@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QWebEnginePage>
+#include <QListWidgetItem>
 
 class player;
 
@@ -39,9 +40,16 @@ private slots:
 
     void on_lineEdit_returnPressed();
 
+    void on_pushButton_pressed();
+
+    void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
+
 private:
     Ui::player *ui;
     PlayerPage *buildPage(const QString &profile);
+    void refreshProfileList();
+
+    bool isProfileListVisible;
 };
 
 #endif // PLAYER_H

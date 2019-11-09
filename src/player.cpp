@@ -7,6 +7,8 @@
 #include <QWebEngineProfile>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <QDir>
+#include <libgen.h>
 
 PlayerPage::PlayerPage(player *parentPlayer, QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {
     this->parentPlayer = parentPlayer;
@@ -29,6 +31,17 @@ bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Naviga
 
 pass:
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+}
+
+void player::refreshProfileList() {
+    QString profilesPath(dirname((char *)(ui->webEngineView->page()->profile()->persistentStoragePath().toStdString().c_str())));
+    QDir profilesDir(profilesPath);
+    QStringList profiles = profilesDir.entryList();
+    foreach (QString profile, profiles) {
+        if (profile == "." || profile == "..")
+            continue;
+        ui->listWidget->addItem(profile);
+    }
 }
 
 PlayerPage *player::buildPage(const QString &profile) {
@@ -57,6 +70,10 @@ player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
     globalPageToGetClickUrl = new PlayerPage(this, newProfile);
 
     showMaximized();
+
+    isProfileListVisible = false;
+    refreshProfileList();
+    ui->listWidget->setVisible(false);
 
     ui->lineEdit->setText("Default");
     PlayerPage *newPage = buildPage(ui->lineEdit->text());
@@ -109,6 +126,23 @@ void player::on_lineEdit_returnPressed() {
     QWebEngineProfile *oldProfile = oldPage->profile();
 
     PlayerPage *newPage = buildPage(ui->lineEdit->text());
+    ui->webEngineView->setPage(newPage);
+    ui->webEngineView->page()->setUrl(QUrl(baseUrl));
+
+    delete oldPage;
+    delete oldProfile;
+}
+
+void player::on_pushButton_pressed() {
+    isProfileListVisible = !isProfileListVisible;
+    ui->listWidget->setVisible(isProfileListVisible);
+}
+
+void player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
+    PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
+    QWebEngineProfile *oldProfile = oldPage->profile();
+
+    PlayerPage *newPage = buildPage(item->text());
     ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 
