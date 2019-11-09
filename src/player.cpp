@@ -129,6 +129,8 @@ void player::on_lineEdit_returnPressed() {
     ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 
+    refreshProfileList();
+
     delete oldPage;
     delete oldProfile;
 }
@@ -145,6 +147,8 @@ void player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     PlayerPage *newPage = buildPage(item->text());
     ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
+
+    ui->lineEdit->setText(item->text());
 
     delete oldPage;
     delete oldProfile;
