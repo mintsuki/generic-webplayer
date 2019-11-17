@@ -8,8 +8,8 @@
 
 #define LOCK_FNAME  (("/tmp/@@player_name@@-lock." + std::to_string(getuid())).c_str())
 
-[[noreturn]] static void signal_handler(int a) {
-    qInfo() << "Caught signal number:" << a;
+[[noreturn]] static void signal_handler(int s) {
+    (void)s;
     remove(LOCK_FNAME);
     _exit(2);
 }
@@ -42,19 +42,15 @@ int main(int argc, char *argv[]) {
     }
 
     player *w;
-    const char *baseUrl;
     if (argc > 1) {
-        baseUrl = argv[1];
-        w = new player(baseUrl, false);
+        w = new player(argv[1], false);
     } else {
-        baseUrl = "@@webapp_url@@";
-        w = new player(baseUrl, true);
+        w = new player("@@webapp_url@@", true);
     }
-
     w->show();
     int ret = a.exec();
-
     delete w;
+
     remove(LOCK_FNAME);
     return ret;
 }
