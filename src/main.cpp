@@ -6,16 +6,23 @@
 #include <cstdio>
 #include <csignal>
 
-#define LOCK_FNAME       (("/tmp/@@player_name@@-lock." + std::to_string(getuid())).c_str())
+#define LOCK_FNAME  (("/tmp/@@player_name@@-lock." + std::to_string(getuid())).c_str())
 
-[[noreturn]] static void sigint_handler(int a) {
-    qInfo() << "Caught signal: " << a;
+[[noreturn]] static void signal_handler(int a) {
+    qInfo() << "Caught signal number:" << a;
     remove(LOCK_FNAME);
-    exit(1);
+    _exit(2);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+    // Hook handler for SIGINT and SIGTERM, so in case of Ctrl+C or similar we delete the lock.
+    struct sigaction sig;
+    sig.sa_handler = signal_handler;
+    sigemptyset(&sig.sa_mask);
+    sig.sa_flags = 0;
+    sigaction(SIGINT,  &sig, nullptr);
+    sigaction(SIGTERM, &sig, nullptr);
+
     QApplication a(argc, argv);
 
     // Check the lock for other open instances
@@ -33,13 +40,6 @@ int main(int argc, char *argv[])
         }
         fclose(lock);
     }
-
-    // Hook lock for SIGINT, so in case of Ctrl+C or similar we delete the lock.
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = sigint_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-    sigaction(SIGINT, &sigIntHandler, nullptr);
 
     player *w;
     const char *baseUrl;

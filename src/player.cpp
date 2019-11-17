@@ -34,7 +34,7 @@ pass:
 }
 
 void player::refreshProfileList() {
-    QString profilesPath(dirname((char *)(ui->webEngineView->page()->profile()->persistentStoragePath().toStdString().c_str())));
+    QString profilesPath(dirname(const_cast<char *>(ui->webEngineView->page()->profile()->persistentStoragePath().toStdString().c_str())));
     QDir profilesDir(profilesPath);
     QStringList profiles = profilesDir.entryList();
     ui->listWidget->clear();
@@ -60,9 +60,8 @@ PlayerPage *player::buildPage(const QString &profile) {
 }
 
 player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::player)
-{
+        QMainWindow(parent),
+        ui(new Ui::player) {
     ui->setupUi(this);
 
     baseUrl = baseUrl_arg;
@@ -82,8 +81,7 @@ player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 }
 
-player::~player()
-{
+player::~player() {
     QWebEngineProfile *oldProfile = globalPageToGetClickUrl->profile();
     delete globalPageToGetClickUrl;
     delete oldProfile;
