@@ -72,8 +72,8 @@ Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
     showMaximized();
 
     isProfileListVisible = false;
-    refreshProfileList();
     ui->listWidget->setVisible(false);
+    refreshProfileList();
 
     ui->lineEdit->setText("Default");
     PlayerPage *newPage = buildPage(ui->lineEdit->text());

@@ -9,11 +9,14 @@ class Player;
 
 class PlayerPage : public QWebEnginePage {
     Q_OBJECT
+
 public:
-    explicit PlayerPage(Player *parentPlayer, QWebEngineProfile *profile, QObject *parent = Q_NULLPTR);
+    explicit PlayerPage(Player *parentPlayer, QWebEngineProfile *profile, QObject *parent = nullptr);
+
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
     bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) override;
+
 private:
     Player *parentPlayer;
 };
