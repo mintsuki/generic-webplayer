@@ -41,11 +41,11 @@ int main(int argc, char *argv[]) {
         fclose(lock);
     }
 
-    player *w;
+    Player *w;
     if (argc > 1) {
-        w = new player(argv[1], false);
+        w = new Player(argv[1], false);
     } else {
-        w = new player("@@webapp_url@@", true);
+        w = new Player("@@webapp_url@@", true);
     }
     w->show();
     int ret = a.exec();

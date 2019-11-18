@@ -10,7 +10,7 @@
 #include <QDir>
 #include <libgen.h>
 
-PlayerPage::PlayerPage(player *parentPlayer, QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {
+PlayerPage::PlayerPage(Player *parentPlayer, QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {
     this->parentPlayer = parentPlayer;
 }
 
@@ -33,7 +33,7 @@ pass:
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }
 
-void player::refreshProfileList() {
+void Player::refreshProfileList() {
     QString profilesPath(dirname(const_cast<char *>(ui->webEngineView->page()->profile()->persistentStoragePath().toStdString().c_str())));
     QDir profilesDir(profilesPath);
     QStringList profiles = profilesDir.entryList();
@@ -45,7 +45,7 @@ void player::refreshProfileList() {
     }
 }
 
-PlayerPage *player::buildPage(const QString &profile) {
+PlayerPage *Player::buildPage(const QString &profile) {
     QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
     PlayerPage *newPage = new PlayerPage(this, newProfile);
 
@@ -59,9 +59,9 @@ PlayerPage *player::buildPage(const QString &profile) {
     return newPage;
 }
 
-player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
+Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
         QMainWindow(parent),
-        ui(new Ui::player) {
+        ui(new Ui::Player) {
     ui->setupUi(this);
 
     baseUrl = baseUrl_arg;
@@ -81,7 +81,7 @@ player::player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 }
 
-player::~player() {
+Player::~Player() {
     QWebEngineProfile *oldProfile = globalPageToGetClickUrl->profile();
     delete globalPageToGetClickUrl;
     delete oldProfile;
@@ -92,7 +92,7 @@ player::~player() {
     delete ui;
 }
 
-void player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
+void Player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
     qDebug() << q << f;
 
     QString s;
@@ -112,15 +112,15 @@ void player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
     }
 }
 
-void player::on_webEngineView_titleChanged(const QString &title) {
+void Player::on_webEngineView_titleChanged(const QString &title) {
     setWindowTitle(title);
 }
 
-void player::on_webEngineView_iconChanged(const QIcon &arg1) {
+void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
     setWindowIcon(arg1);
 }
 
-void player::on_lineEdit_returnPressed() {
+void Player::on_lineEdit_returnPressed() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
     QWebEngineProfile *oldProfile = oldPage->profile();
 
@@ -134,12 +134,12 @@ void player::on_lineEdit_returnPressed() {
     delete oldProfile;
 }
 
-void player::on_pushButton_pressed() {
+void Player::on_pushButton_pressed() {
     isProfileListVisible = !isProfileListVisible;
     ui->listWidget->setVisible(isProfileListVisible);
 }
 
-void player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
+void Player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
     QWebEngineProfile *oldProfile = oldPage->profile();
 
