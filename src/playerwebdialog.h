@@ -4,6 +4,16 @@
 #include <QMainWindow>
 #include <QWebEnginePage>
 
+class WebDialogPage : public QWebEnginePage {
+    Q_OBJECT
+
+public:
+    explicit WebDialogPage(QWebEngineProfile *profile, QObject *parent = nullptr);
+
+protected:
+    QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
+};
+
 namespace Ui {
 class PlayerWebDialog;
 }

@@ -17,15 +17,14 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     switch (type) {
         case QWebEnginePage::WebBrowserWindow:
         case QWebEnginePage::WebBrowserTab:
+        case QWebEnginePage::WebBrowserBackgroundTab:
             return new PlayerPage(profile(), parent());
         case QWebEnginePage::WebDialog: {
-            QWebEnginePage *p  = new QWebEnginePage(profile());
+            WebDialogPage *p   = new WebDialogPage(profile());
             PlayerWebDialog *w = new PlayerWebDialog(p);
             w->show();
             return p;
         }
-        default:
-            return QWebEnginePage::createWindow(type);
     }
 }
 
