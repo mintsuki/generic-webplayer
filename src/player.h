@@ -5,20 +5,15 @@
 #include <QWebEnginePage>
 #include <QListWidgetItem>
 
-class Player;
-
 class PlayerPage : public QWebEnginePage {
     Q_OBJECT
 
 public:
-    explicit PlayerPage(Player *parentPlayer, QWebEngineProfile *profile, QObject *parent = nullptr);
+    explicit PlayerPage(QWebEngineProfile *profile, QObject *parent);
 
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
     bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) override;
-
-private:
-    Player *parentPlayer;
 };
 
 QT_BEGIN_NAMESPACE
@@ -32,7 +27,7 @@ public:
     explicit Player(const char *baseUrl, bool openBrowser, QWidget *parent = nullptr);
     ~Player();
 
-    PlayerPage *globalPageToGetClickUrl;
+    Ui::Player *ui;
     const char *baseUrl;
     bool openBrowser;
 
@@ -48,7 +43,6 @@ private:
     PlayerPage *buildPage(const QString &profile);
     void refreshProfileList();
 
-    Ui::Player *ui;
     bool isProfileListVisible;
 };
 

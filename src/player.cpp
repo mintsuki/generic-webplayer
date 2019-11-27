@@ -1,6 +1,8 @@
 #include "player.h"
 #include "ui_player.h"
 
+#include "playerwebdialog.h"
+
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
 #include <QWebEngineSettings>
@@ -10,26 +12,40 @@
 #include <QDir>
 #include <libgen.h>
 
-PlayerPage::PlayerPage(Player *parentPlayer, QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {
-    this->parentPlayer = parentPlayer;
-}
+PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
-    return parentPlayer->globalPageToGetClickUrl;
+    switch (type) {
+        case QWebEnginePage::WebBrowserWindow:
+        case QWebEnginePage::WebBrowserTab:
+            return new PlayerPage(profile(), parent());
+        case QWebEnginePage::WebDialog: {
+            QWebEnginePage *p  = new QWebEnginePage(profile());
+            PlayerWebDialog *w = new PlayerWebDialog(p);
+            w->show();
+            return p;
+        }
+        default:
+            return QWebEnginePage::createWindow(type);
+    }
 }
 
 bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
     qDebug() << "acceptNavigationRequest url: " << url << " type: " << type << " isMainFrame: " << isMainFrame;
-    if (isMainFrame) {
-        // Exception for base link
-        if (parentPlayer->openBrowser == false || url == QUrl(parentPlayer->baseUrl))
-            goto pass;
-        QDesktopServices::openUrl(url);
-        return false;
+
+    PlayerPage *oldPage = static_cast<PlayerPage *>(static_cast<Player *>(parent())->ui->webEngineView->page());
+    if (oldPage != this) {
+        if (static_cast<Player *>(parent())->openBrowser) {
+            QDesktopServices::openUrl(url);
+            delete this;
+            return false;
+        } else {
+            static_cast<Player *>(parent())->ui->webEngineView->setPage(this);
+            delete oldPage;
+        }
     }
 
-pass:
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }
 
@@ -47,7 +63,7 @@ void Player::refreshProfileList() {
 
 PlayerPage *Player::buildPage(const QString &profile) {
     QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
-    PlayerPage *newPage = new PlayerPage(this, newProfile);
+    PlayerPage *newPage = new PlayerPage(newProfile, this);
 
     newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
@@ -66,8 +82,6 @@ Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
 
     baseUrl = baseUrl_arg;
     openBrowser = openBrowser_arg;
-    QWebEngineProfile *newProfile = new QWebEngineProfile();
-    globalPageToGetClickUrl = new PlayerPage(this, newProfile);
 
     showMaximized();
 
@@ -82,11 +96,8 @@ Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
 }
 
 Player::~Player() {
-    QWebEngineProfile *oldProfile = globalPageToGetClickUrl->profile();
-    delete globalPageToGetClickUrl;
-    delete oldProfile;
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-    oldProfile = oldPage->profile();
+    QWebEngineProfile *oldProfile = oldPage->profile();
     delete oldPage;
     delete oldProfile;
     delete ui;
