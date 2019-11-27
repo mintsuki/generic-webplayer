@@ -3,8 +3,6 @@
 
 #include "playerwebdialog.h"
 
-#include <QWebEngineScript>
-#include <QWebEngineScriptCollection>
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QDesktopServices>
