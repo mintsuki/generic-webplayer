@@ -28,8 +28,8 @@ public:
 
 private slots:
     void on_webEngineView_iconChanged(const QIcon &arg1);
-
     void on_webEngineView_titleChanged(const QString &title);
+    void windowCloseRequested();
 
 private:
     Ui::PlayerWebDialog *ui;

@@ -8,7 +8,6 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QDir>
-#include <libgen.h>
 
 PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
 
@@ -47,8 +46,7 @@ bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Naviga
 }
 
 void Player::refreshProfileList() {
-    QString profilesPath(dirname(const_cast<char *>(ui->webEngineView->page()->profile()->persistentStoragePath().toStdString().c_str())));
-    QDir profilesDir(profilesPath);
+    QDir profilesDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QString("/QtWebEngine"));
     QStringList profiles = profilesDir.entryList();
     ui->listWidget->clear();
     foreach (QString profile, profiles) {

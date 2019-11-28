@@ -20,6 +20,13 @@ PlayerWebDialog::PlayerWebDialog(QWebEnginePage *page, QWidget *parent) :
 
     setAttribute(Qt::WA_DeleteOnClose);
 
+    connect(
+        page,
+        SIGNAL(windowCloseRequested()),
+        this,
+        SLOT(windowCloseRequested())
+    );
+
     ui->webEngineView->setPage(page);
 }
 
@@ -34,4 +41,8 @@ void PlayerWebDialog::on_webEngineView_iconChanged(const QIcon &arg1) {
 
 void PlayerWebDialog::on_webEngineView_titleChanged(const QString &title) {
     setWindowTitle(title);
+}
+
+void PlayerWebDialog::windowCloseRequested() {
+    close();
 }
