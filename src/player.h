@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QWebEnginePage>
+#include <QWebEngineView>
 #include <QListWidgetItem>
+#include <vector>
 
 class ProfileList {
 public:
@@ -24,11 +26,15 @@ class PlayerPage : public QWebEnginePage {
     Q_OBJECT
 
 public:
-    explicit PlayerPage(QWebEngineProfile *profile, QObject *parent);
+    explicit PlayerPage(QWebEngineProfile *profile, QWebEngineView *parentView, bool openBrowser, QObject *parent = nullptr);
 
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
     bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) override;
+
+private:
+    QWebEngineView *parentView;
+    bool openBrowser;
 };
 
 QT_BEGIN_NAMESPACE
@@ -41,10 +47,6 @@ class Player : public QMainWindow {
 public:
     explicit Player(const char *baseUrl, bool openBrowser, const QString &profile = "Default", QWidget *parent = nullptr);
     ~Player();
-
-    Ui::Player *ui;
-    const char *baseUrl;
-    bool openBrowser;
 
 private slots:
     void on_webEngineView_titleChanged(const QString &title);
@@ -59,6 +61,9 @@ private:
     PlayerPage *buildPage(const QString &profile);
     void refreshProfileList();
 
+    Ui::Player *ui;
+    const char *baseUrl;
+    bool openBrowser;
     bool isProfileListVisible;
 };
 

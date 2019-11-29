@@ -23,7 +23,7 @@ class PlayerWebDialog : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit PlayerWebDialog(QWebEnginePage *page, QWidget *parent = nullptr);
+    explicit PlayerWebDialog(WebDialogPage *page, QWidget *parent = nullptr);
     ~PlayerWebDialog();
 
 private slots:

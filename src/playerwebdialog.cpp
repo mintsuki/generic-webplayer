@@ -12,7 +12,7 @@ QWebEnginePage *WebDialogPage::createWindow(QWebEnginePage::WebWindowType type) 
     return p;
 }
 
-PlayerWebDialog::PlayerWebDialog(QWebEnginePage *page, QWidget *parent) :
+PlayerWebDialog::PlayerWebDialog(WebDialogPage *page, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::PlayerWebDialog)
 {
@@ -31,8 +31,9 @@ PlayerWebDialog::PlayerWebDialog(QWebEnginePage *page, QWidget *parent) :
 }
 
 PlayerWebDialog::~PlayerWebDialog() {
-    delete ui->webEngineView->page();
+    WebDialogPage *oldPage = static_cast<WebDialogPage *>(ui->webEngineView->page());
     delete ui;
+    delete oldPage;
 }
 
 void PlayerWebDialog::on_webEngineView_iconChanged(const QIcon &arg1) {

@@ -8,17 +8,20 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QDir>
-#include <vector>
 
-PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
+PlayerPage::PlayerPage(QWebEngineProfile *profile, QWebEngineView *parentView, bool openBrowser, QObject *parent) : QWebEnginePage(profile, parent) {
+    this->parentView  = parentView;
+    this->openBrowser = openBrowser;
+}
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
+
     switch (type) {
         case QWebEnginePage::WebBrowserWindow:
         case QWebEnginePage::WebBrowserTab:
         case QWebEnginePage::WebBrowserBackgroundTab:
-            return new PlayerPage(profile(), parent());
+            return new PlayerPage(profile(), parentView, openBrowser);
         case QWebEnginePage::WebDialog: {
             WebDialogPage *p   = new WebDialogPage(profile());
             PlayerWebDialog *w = new PlayerWebDialog(p);
@@ -31,15 +34,15 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
 bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
     qDebug() << "acceptNavigationRequest url: " << url << " type: " << type << " isMainFrame: " << isMainFrame;
 
-    PlayerPage *oldPage = static_cast<PlayerPage *>(static_cast<Player *>(parent())->ui->webEngineView->page());
-    if (oldPage != this) {
-        if (static_cast<Player *>(parent())->openBrowser) {
+    PlayerPage *parentPage = static_cast<PlayerPage *>(parentView->page());
+    if (parentPage != this) {
+        if (openBrowser) {
             QDesktopServices::openUrl(url);
             delete this;
             return false;
         } else {
-            static_cast<Player *>(parent())->ui->webEngineView->setPage(this);
-            delete oldPage;
+            parentView->setPage(this);
+            delete parentPage;
         }
     }
 
@@ -104,7 +107,7 @@ PlayerPage *Player::buildPage(const QString &profile) {
     if (p == nullptr)
         p = profileList->newProfile(profile);
 
-    PlayerPage *newPage = new PlayerPage(p, this);
+    PlayerPage *newPage = new PlayerPage(p, ui->webEngineView, openBrowser);
 
     newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
