@@ -52,7 +52,6 @@ int main(int argc, char *argv[]) {
     }
     w->show();
     int ret = a.exec();
-    delete w;
 
     delete profileList;
     remove(LOCK_FNAME);

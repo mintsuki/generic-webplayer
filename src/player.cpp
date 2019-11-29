@@ -116,7 +116,7 @@ PlayerPage *Player::buildPage(const QString &profile) {
     return newPage;
 }
 
-Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
+Player::Player(const char *baseUrl_arg, bool openBrowser_arg, const QString &profile, QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::Player) {
     ui->setupUi(this);
@@ -124,13 +124,15 @@ Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
     baseUrl = baseUrl_arg;
     openBrowser = openBrowser_arg;
 
+    setAttribute(Qt::WA_DeleteOnClose);
+
     showMaximized();
 
     isProfileListVisible = false;
     ui->listWidget->setVisible(false);
     refreshProfileList();
 
-    ui->lineEdit->setText("Default");
+    ui->lineEdit->setText(profile);
     PlayerPage *newPage = buildPage(ui->lineEdit->text());
     ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
@@ -182,9 +184,14 @@ void Player::on_lineEdit_returnPressed() {
     delete oldPage;
 }
 
-void Player::on_pushButton_pressed() {
+void Player::on_pushButton_clicked() {
     isProfileListVisible = !isProfileListVisible;
     ui->listWidget->setVisible(isProfileListVisible);
+}
+
+void Player::on_pushButton_2_clicked() {
+    Player *w = new Player(baseUrl, openBrowser, ui->lineEdit->text());
+    w->show();
 }
 
 void Player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {

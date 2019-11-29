@@ -39,7 +39,7 @@ class Player : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit Player(const char *baseUrl, bool openBrowser, QWidget *parent = nullptr);
+    explicit Player(const char *baseUrl, bool openBrowser, const QString &profile = "Default", QWidget *parent = nullptr);
     ~Player();
 
     Ui::Player *ui;
@@ -51,7 +51,8 @@ private slots:
     void on_webEngineView_iconChanged(const QIcon &arg1);
     void grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f);
     void on_lineEdit_returnPressed();
-    void on_pushButton_pressed();
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
     void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
 
 private:
