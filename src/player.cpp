@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QDir>
+#include <vector>
 
 PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
 
@@ -45,20 +46,65 @@ bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Naviga
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }
 
-void Player::refreshProfileList() {
+ProfileList::ProfileList() {
     QDir profilesDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QString("/QtWebEngine"));
     QStringList profiles = profilesDir.entryList();
-    ui->listWidget->clear();
     foreach (QString profile, profiles) {
-        if (profile == "." || profile == "..")
+        if (profile == "." || profile == "..") {
             continue;
-        ui->listWidget->addItem(profile);
+        } else if (profile == "Default") {
+            list.push_back(QWebEngineProfile::defaultProfile());
+        } else {
+            QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
+            list.push_back(newProfile);
+        }
+    }
+}
+
+ProfileList::~ProfileList() {
+    foreach (QWebEngineProfile *p, list) {
+        if (p->storageName() != "Default") {
+            delete p;
+        }
+    }
+}
+
+QWebEngineProfile *ProfileList::getProfile(const QString &name) {
+    foreach (QWebEngineProfile *p, list) {
+        if (p->storageName() == name) {
+            return p;
+        }
+    }
+    return nullptr;
+}
+
+std::vector<QWebEngineProfile *> ProfileList::getProfileList() {
+    return list;
+}
+
+QWebEngineProfile *ProfileList::newProfile(const QString &name) {
+    QWebEngineProfile *p = new QWebEngineProfile(name);
+    list.push_back(p);
+    return p;
+}
+
+ProfileList *profileList = nullptr;
+
+void Player::refreshProfileList() {
+    ui->listWidget->clear();
+    std::vector<QWebEngineProfile *> list = profileList->getProfileList();
+    foreach (QWebEngineProfile *profile, list) {
+        ui->listWidget->addItem(profile->storageName());
     }
 }
 
 PlayerPage *Player::buildPage(const QString &profile) {
-    QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
-    PlayerPage *newPage = new PlayerPage(newProfile, this);
+    QWebEngineProfile *p = profileList->getProfile(profile);
+
+    if (p == nullptr)
+        p = profileList->newProfile(profile);
+
+    PlayerPage *newPage = new PlayerPage(p, this);
 
     newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
@@ -92,10 +138,8 @@ Player::Player(const char *baseUrl_arg, bool openBrowser_arg, QWidget *parent) :
 
 Player::~Player() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-    QWebEngineProfile *oldProfile = oldPage->profile();
-    delete oldPage;
-    delete oldProfile;
     delete ui;
+    delete oldPage;
 }
 
 void Player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
@@ -128,7 +172,6 @@ void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
 
 void Player::on_lineEdit_returnPressed() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-    QWebEngineProfile *oldProfile = oldPage->profile();
 
     PlayerPage *newPage = buildPage(ui->lineEdit->text());
     ui->webEngineView->setPage(newPage);
@@ -137,7 +180,6 @@ void Player::on_lineEdit_returnPressed() {
     refreshProfileList();
 
     delete oldPage;
-    delete oldProfile;
 }
 
 void Player::on_pushButton_pressed() {
@@ -147,7 +189,6 @@ void Player::on_pushButton_pressed() {
 
 void Player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-    QWebEngineProfile *oldProfile = oldPage->profile();
 
     PlayerPage *newPage = buildPage(item->text());
     ui->webEngineView->setPage(newPage);
@@ -156,5 +197,4 @@ void Player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     ui->lineEdit->setText(item->text());
 
     delete oldPage;
-    delete oldProfile;
 }

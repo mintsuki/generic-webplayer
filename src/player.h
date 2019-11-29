@@ -5,6 +5,21 @@
 #include <QWebEnginePage>
 #include <QListWidgetItem>
 
+class ProfileList {
+public:
+    explicit ProfileList();
+    ~ProfileList();
+
+    QWebEngineProfile *getProfile(const QString &name);
+    std::vector<QWebEngineProfile *> getProfileList();
+    QWebEngineProfile *newProfile(const QString &name);
+
+private:
+    std::vector<QWebEngineProfile *> list;
+};
+
+extern ProfileList *profileList;
+
 class PlayerPage : public QWebEnginePage {
     Q_OBJECT
 

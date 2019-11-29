@@ -10,6 +10,7 @@
 
 [[noreturn]] static void signal_handler(int s) {
     (void)s;
+    delete profileList;
     remove(LOCK_FNAME);
     _exit(2);
 }
@@ -41,6 +42,8 @@ int main(int argc, char *argv[]) {
         fclose(lock);
     }
 
+    profileList = new ProfileList;
+
     Player *w;
     if (argc > 1) {
         w = new Player(argv[1], false);
@@ -51,6 +54,7 @@ int main(int argc, char *argv[]) {
     int ret = a.exec();
     delete w;
 
+    delete profileList;
     remove(LOCK_FNAME);
     return ret;
 }
