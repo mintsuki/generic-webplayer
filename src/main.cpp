@@ -46,9 +46,9 @@ int main(int argc, char *argv[]) {
 
     Player *w;
     if (argc > 1) {
-        w = new Player(argv[1], false);
+        w = new Player(QUrl(argv[1]), false);
     } else {
-        w = new Player("@@webapp_url@@", true);
+        w = new Player(QUrl("@@webapp_url@@"), true);
     }
     w->show();
     int ret = a.exec();

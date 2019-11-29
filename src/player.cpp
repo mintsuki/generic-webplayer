@@ -9,44 +9,53 @@
 #include <QMessageBox>
 #include <QDir>
 
-PlayerPage::PlayerPage(QWebEngineProfile *profile, QWebEngineView *parentView, bool openBrowser, QObject *parent) : QWebEnginePage(profile, parent) {
-    this->parentView  = parentView;
+PlayerPage::PlayerPage(QWebEngineProfile *profile, bool openBrowser, QObject *parent) : QWebEnginePage(profile, parent) {
     this->openBrowser = openBrowser;
 }
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
 
+    foreach (DummyPage *p, pagesToDestroy) {
+        delete p;
+    }
+    pagesToDestroy.clear();
+
     switch (type) {
-        case QWebEnginePage::WebBrowserWindow:
-        case QWebEnginePage::WebBrowserTab:
-        case QWebEnginePage::WebBrowserBackgroundTab:
-            return new PlayerPage(profile(), parentView, openBrowser);
         case QWebEnginePage::WebDialog: {
             WebDialogPage *p   = new WebDialogPage(profile());
             PlayerWebDialog *w = new PlayerWebDialog(p);
             w->show();
             return p;
         }
+        default: {
+            if (openBrowser) {
+                DummyPage *p = new DummyPage(profile());
+                pagesToDestroy.push_back(p);
+                return p;
+            } else {
+                PlayerPage *p  = new PlayerPage(profile(), openBrowser);
+                Player *player = new Player(QUrl("about:blank"), openBrowser, p);
+                player->show();
+                return p;
+            }
+        }
     }
 }
 
-bool PlayerPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
+PlayerPage::~PlayerPage() {
+    foreach (DummyPage *p, pagesToDestroy) {
+        delete p;
+    }
+}
+
+DummyPage::DummyPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
+
+bool DummyPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
     qDebug() << "acceptNavigationRequest url: " << url << " type: " << type << " isMainFrame: " << isMainFrame;
 
-    PlayerPage *parentPage = static_cast<PlayerPage *>(parentView->page());
-    if (parentPage != this) {
-        if (openBrowser) {
-            QDesktopServices::openUrl(url);
-            delete this;
-            return false;
-        } else {
-            parentView->setPage(this);
-            delete parentPage;
-        }
-    }
-
-    return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+    QDesktopServices::openUrl(url);
+    return false;
 }
 
 ProfileList::ProfileList() {
@@ -94,10 +103,10 @@ QWebEngineProfile *ProfileList::newProfile(const QString &name) {
 ProfileList *profileList = nullptr;
 
 void Player::refreshProfileList() {
-    ui->listWidget->clear();
+    ui->profileListWidget->clear();
     std::vector<QWebEngineProfile *> list = profileList->getProfileList();
     foreach (QWebEngineProfile *profile, list) {
-        ui->listWidget->addItem(profile->storageName());
+        ui->profileListWidget->addItem(profile->storageName());
     }
 }
 
@@ -107,7 +116,7 @@ PlayerPage *Player::buildPage(const QString &profile) {
     if (p == nullptr)
         p = profileList->newProfile(profile);
 
-    PlayerPage *newPage = new PlayerPage(p, ui->webEngineView, openBrowser);
+    PlayerPage *newPage = new PlayerPage(p, openBrowser);
 
     newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
@@ -119,25 +128,30 @@ PlayerPage *Player::buildPage(const QString &profile) {
     return newPage;
 }
 
-Player::Player(const char *baseUrl_arg, bool openBrowser_arg, const QString &profile, QWidget *parent) :
+Player::Player(const QUrl &baseUrl, bool openBrowser, PlayerPage *initialPage, const QString &profile, QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::Player) {
     ui->setupUi(this);
 
-    baseUrl = baseUrl_arg;
-    openBrowser = openBrowser_arg;
+    this->baseUrl     = baseUrl;
+    this->openBrowser = openBrowser;
 
     setAttribute(Qt::WA_DeleteOnClose);
 
     showMaximized();
 
     isProfileListVisible = false;
-    ui->listWidget->setVisible(false);
+    ui->profileListWidget->setVisible(false);
     refreshProfileList();
 
-    ui->lineEdit->setText(profile);
-    PlayerPage *newPage = buildPage(ui->lineEdit->text());
-    ui->webEngineView->setPage(newPage);
+    if (!initialPage) {
+        ui->profileTextbox->setText(profile);
+        PlayerPage *newPage = buildPage(profile);
+        ui->webEngineView->setPage(newPage);
+    } else {
+        ui->profileTextbox->setText(initialPage->profile()->storageName());
+        ui->webEngineView->setPage(initialPage);
+    }
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 }
 
@@ -175,10 +189,10 @@ void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
     setWindowIcon(arg1);
 }
 
-void Player::on_lineEdit_returnPressed() {
+void Player::on_profileTextbox_returnPressed() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
 
-    PlayerPage *newPage = buildPage(ui->lineEdit->text());
+    PlayerPage *newPage = buildPage(ui->profileTextbox->text());
     ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 
@@ -187,24 +201,24 @@ void Player::on_lineEdit_returnPressed() {
     delete oldPage;
 }
 
-void Player::on_pushButton_clicked() {
+void Player::on_profilesButton_clicked() {
     isProfileListVisible = !isProfileListVisible;
-    ui->listWidget->setVisible(isProfileListVisible);
+    ui->profileListWidget->setVisible(isProfileListVisible);
 }
 
-void Player::on_pushButton_2_clicked() {
-    Player *w = new Player(baseUrl, openBrowser, ui->lineEdit->text());
+void Player::on_newWindowButton_clicked() {
+    Player *w = new Player(baseUrl, openBrowser, nullptr, ui->profileTextbox->text());
     w->show();
 }
 
-void Player::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
+void Player::on_profileListWidget_itemDoubleClicked(QListWidgetItem *item) {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
 
     PlayerPage *newPage = buildPage(item->text());
     ui->webEngineView->setPage(newPage);
     ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 
-    ui->lineEdit->setText(item->text());
+    ui->profileTextbox->setText(item->text());
 
     delete oldPage;
 }
