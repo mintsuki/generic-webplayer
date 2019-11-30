@@ -72,7 +72,7 @@ private slots:
     void on_profileListWidget_itemDoubleClicked(QListWidgetItem *item);
 
 private:
-    PlayerPage *buildPage(const QString &profile);
+    PlayerPage *buildPage(const QString &profile, PlayerPage *page = nullptr);
     void refreshProfileList();
 
     Ui::Player *ui;

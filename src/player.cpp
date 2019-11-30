@@ -35,7 +35,7 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
                 return p;
             } else {
                 PlayerPage *p  = new PlayerPage(profile(), openBrowser);
-                Player *player = new Player(QUrl("about:blank"), openBrowser, p);
+                Player *player = new Player(QUrl("@@webapp_url@@"), openBrowser, p);
                 player->show();
                 return p;
             }
@@ -110,13 +110,18 @@ void Player::refreshProfileList() {
     }
 }
 
-PlayerPage *Player::buildPage(const QString &profile) {
-    QWebEngineProfile *p = profileList->getProfile(profile);
+PlayerPage *Player::buildPage(const QString &profile, PlayerPage *page) {
+    PlayerPage *newPage;
 
-    if (p == nullptr)
-        p = profileList->newProfile(profile);
+    if (page == nullptr) {
+        QWebEngineProfile *p = profileList->getProfile(profile);
+        if (p == nullptr)
+            p = profileList->newProfile(profile);
 
-    PlayerPage *newPage = new PlayerPage(p, openBrowser);
+        newPage = new PlayerPage(p, openBrowser);
+    } else {
+        newPage = page;
+    }
 
     newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
@@ -148,11 +153,12 @@ Player::Player(const QUrl &baseUrl, bool openBrowser, PlayerPage *initialPage, c
         ui->profileTextbox->setText(profile);
         PlayerPage *newPage = buildPage(profile);
         ui->webEngineView->setPage(newPage);
+        ui->webEngineView->page()->setUrl(QUrl(baseUrl));
     } else {
         ui->profileTextbox->setText(initialPage->profile()->storageName());
+        buildPage("", initialPage);
         ui->webEngineView->setPage(initialPage);
     }
-    ui->webEngineView->page()->setUrl(QUrl(baseUrl));
 }
 
 Player::~Player() {
