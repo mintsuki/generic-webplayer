@@ -44,7 +44,7 @@
       <item>
        <widget class="QLabel" name="urlLabel">
         <property name="text">
-         <string>URL:</string>
+         <string> URL: </string>
         </property>
        </widget>
       </item>

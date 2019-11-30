@@ -202,8 +202,8 @@ void Player::on_webEngineView_urlChanged(const QUrl &arg1) {
 }
 
 void Player::on_urlTextbox_returnPressed() {
-    PlayerPage *p  = new PlayerPage(ui->webEngineView->page()->profile(), openBrowser);
-    Player *player = new Player(baseUrl, openBrowser, p);
+    PlayerPage *p  = new PlayerPage(ui->webEngineView->page()->profile(), false);
+    Player *player = new Player(baseUrl, false, p);
     p->setUrl(QUrl::fromUserInput(ui->urlTextbox->text()));
     player->show();
 }
