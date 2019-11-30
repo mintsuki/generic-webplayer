@@ -41,6 +41,49 @@
       <item>
        <widget class="QLineEdit" name="profileTextbox"/>
       </item>
+      <item>
+       <widget class="QLabel" name="urlLabel">
+        <property name="text">
+         <string>URL:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="urlTextbox"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="backButton">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>&lt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="forwardsButton">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="openBrowserCheckbox">
+        <property name="text">
+         <string>Open links in browser</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

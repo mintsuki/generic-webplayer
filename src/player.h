@@ -39,11 +39,12 @@ public:
     explicit PlayerPage(QWebEngineProfile *profile, bool openBrowser, QObject *parent = nullptr);
     ~PlayerPage() override;
 
+    bool openBrowser;
+
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
 
 private:
-    bool openBrowser;
     std::vector<DummyPage *> pagesToDestroy;
 };
 
@@ -65,6 +66,11 @@ public:
 private slots:
     void on_webEngineView_titleChanged(const QString &title);
     void on_webEngineView_iconChanged(const QIcon &arg1);
+    void on_webEngineView_urlChanged(const QUrl &arg1);
+    void on_urlTextbox_returnPressed();
+    void on_backButton_clicked();
+    void on_forwardsButton_clicked();
+    void on_openBrowserCheckbox_stateChanged(int arg1);
     void grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f);
     void on_profileTextbox_returnPressed();
     void on_profilesButton_clicked();

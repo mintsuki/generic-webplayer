@@ -159,6 +159,8 @@ Player::Player(const QUrl &baseUrl, bool openBrowser, PlayerPage *initialPage, c
         buildPage("", initialPage);
         ui->webEngineView->setPage(initialPage);
     }
+
+    ui->openBrowserCheckbox->setCheckState(openBrowser ? Qt::Checked : Qt::Unchecked);
 }
 
 Player::~Player() {
@@ -193,6 +195,31 @@ void Player::on_webEngineView_titleChanged(const QString &title) {
 
 void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
     setWindowIcon(arg1);
+}
+
+void Player::on_webEngineView_urlChanged(const QUrl &arg1) {
+    ui->urlTextbox->setText(arg1.toString());
+}
+
+void Player::on_urlTextbox_returnPressed() {
+    PlayerPage *p  = new PlayerPage(ui->webEngineView->page()->profile(), openBrowser);
+    Player *player = new Player(baseUrl, openBrowser, p);
+    p->setUrl(QUrl::fromUserInput(ui->urlTextbox->text()));
+    player->show();
+}
+
+void Player::on_backButton_clicked() {
+    ui->webEngineView->back();
+}
+
+void Player::on_forwardsButton_clicked() {
+    ui->webEngineView->forward();
+}
+
+void Player::on_openBrowserCheckbox_stateChanged(int arg1) {
+    bool b = (arg1 == Qt::Checked);
+    openBrowser = b;
+    static_cast<PlayerPage *>(ui->webEngineView->page())->openBrowser = b;
 }
 
 void Player::on_profileTextbox_returnPressed() {
