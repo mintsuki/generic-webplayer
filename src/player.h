@@ -85,6 +85,7 @@ private slots:
 
 private:
     PlayerPage *buildPage(const QString &profile, PlayerPage *page = nullptr);
+    void toggleProfilesBar();
 
     Ui::Player *ui;
     QUrl baseUrl;

@@ -197,9 +197,8 @@ void Player::on_webEngineView_titleChanged(const QString &title) {
     setWindowTitle(title +
                    (profile == "Default"
                     ?  ""
-                    : (" - [" + profile + "]")
-                   ) +
-                   " - @@player_nice_name@@"
+                    : (" -- [Profile: " + profile + "]")
+                   )
                   );
 }
 
@@ -232,13 +231,7 @@ void Player::on_openBrowserCheckbox_stateChanged(int arg1) {
     static_cast<PlayerPage *>(ui->webEngineView->page())->openBrowser = b;
 }
 
-void Player::on_profileTextbox_returnPressed() {
-    Player *w = new Player(baseUrl, openBrowser, nullptr, ui->profileTextbox->text());
-    ui->profileTextbox->setText(ui->webEngineView->page()->profile()->storageName());
-    w->show();
-}
-
-void Player::on_profilesButton_clicked() {
+void Player::toggleProfilesBar() {
     if (ui->profilesBar->isVisible()) {
         ui->profilesButton->setText("Show profiles");
         ui->profilesBar->setVisible(false);
@@ -246,6 +239,17 @@ void Player::on_profilesButton_clicked() {
         ui->profilesButton->setText("Hide profiles");
         ui->profilesBar->setVisible(true);
     }
+}
+
+void Player::on_profileTextbox_returnPressed() {
+    Player *w = new Player(baseUrl, openBrowser, nullptr, ui->profileTextbox->text());
+    ui->profileTextbox->setText(ui->webEngineView->page()->profile()->storageName());
+    w->show();
+    toggleProfilesBar();
+}
+
+void Player::on_profilesButton_clicked() {
+    toggleProfilesBar();
 }
 
 void Player::on_newWindowButton_clicked() {
@@ -256,4 +260,5 @@ void Player::on_newWindowButton_clicked() {
 void Player::on_profileListWidget_itemDoubleClicked(QListWidgetItem *item) {
     Player *w = new Player(baseUrl, openBrowser, nullptr, item->text());
     w->show();
+    toggleProfilesBar();
 }
