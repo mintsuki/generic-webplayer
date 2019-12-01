@@ -14,32 +14,22 @@
    <string>@@player_nice_name@@</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QPushButton" name="profilesButton">
         <property name="text">
-         <string>Profiles</string>
+         <string>Show profiles</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="newWindowButton">
         <property name="text">
-         <string>New Window</string>
+         <string>New window</string>
         </property>
        </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="profileLabel">
-        <property name="text">
-         <string> Profile: </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="profileTextbox"/>
       </item>
       <item>
        <widget class="QLabel" name="urlLabel">
@@ -89,19 +79,51 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QListWidget" name="profileListWidget">
+       <widget class="QWidget" name="profilesBar" native="true">
         <property name="minimumSize">
          <size>
-          <width>0</width>
+          <width>200</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>200</width>
           <height>16777215</height>
          </size>
         </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QListWidget" name="profileListWidget">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="profileLabel">
+             <property name="text">
+              <string> Profile: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="profileTextbox"/>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>

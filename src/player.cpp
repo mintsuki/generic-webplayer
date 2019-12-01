@@ -90,25 +90,18 @@ QWebEngineProfile *ProfileList::getProfile(const QString &name) {
     return nullptr;
 }
 
-std::vector<QWebEngineProfile *> ProfileList::getProfileList() {
-    return list;
+void ProfileList::getProfileList() {
+    emit profileListChanged(list);
 }
 
 QWebEngineProfile *ProfileList::newProfile(const QString &name) {
     QWebEngineProfile *p = new QWebEngineProfile(name);
     list.push_back(p);
+    emit profileListChanged(list);
     return p;
 }
 
 ProfileList *profileList = nullptr;
-
-void Player::refreshProfileList() {
-    ui->profileListWidget->clear();
-    std::vector<QWebEngineProfile *> list = profileList->getProfileList();
-    foreach (QWebEngineProfile *profile, list) {
-        ui->profileListWidget->addItem(profile->storageName());
-    }
-}
 
 PlayerPage *Player::buildPage(const QString &profile, PlayerPage *page) {
     PlayerPage *newPage;
@@ -142,12 +135,15 @@ Player::Player(const QUrl &baseUrl, bool openBrowser, PlayerPage *initialPage, c
     this->openBrowser = openBrowser;
 
     setAttribute(Qt::WA_DeleteOnClose);
-
     showMaximized();
+    ui->profilesBar->setVisible(false);
 
-    isProfileListVisible = false;
-    ui->profileListWidget->setVisible(false);
-    refreshProfileList();
+    connect(profileList,
+            SIGNAL(profileListChanged(std::vector<QWebEngineProfile *>)),
+            this,
+            SLOT(profileListChanged(std::vector<QWebEngineProfile *>)));
+
+    profileList->getProfileList();
 
     if (!initialPage) {
         ui->profileTextbox->setText(profile);
@@ -167,6 +163,13 @@ Player::~Player() {
     PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
     delete ui;
     delete oldPage;
+}
+
+void Player::profileListChanged(std::vector<QWebEngineProfile *> list) {
+    ui->profileListWidget->clear();
+    foreach (QWebEngineProfile *profile, list) {
+        ui->profileListWidget->addItem(profile->storageName());
+    }
 }
 
 void Player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
@@ -190,7 +193,14 @@ void Player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
 }
 
 void Player::on_webEngineView_titleChanged(const QString &title) {
-    setWindowTitle(title);
+    QString profile = ui->webEngineView->page()->profile()->storageName();
+    setWindowTitle(title +
+                   (profile == "Default"
+                    ?  ""
+                    : (" - [" + profile + "]")
+                   ) +
+                   " - @@player_nice_name@@"
+                  );
 }
 
 void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
@@ -223,20 +233,19 @@ void Player::on_openBrowserCheckbox_stateChanged(int arg1) {
 }
 
 void Player::on_profileTextbox_returnPressed() {
-    PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-
-    PlayerPage *newPage = buildPage(ui->profileTextbox->text());
-    ui->webEngineView->setPage(newPage);
-    ui->webEngineView->page()->setUrl(QUrl(baseUrl));
-
-    refreshProfileList();
-
-    delete oldPage;
+    Player *w = new Player(baseUrl, openBrowser, nullptr, ui->profileTextbox->text());
+    ui->profileTextbox->setText(ui->webEngineView->page()->profile()->storageName());
+    w->show();
 }
 
 void Player::on_profilesButton_clicked() {
-    isProfileListVisible = !isProfileListVisible;
-    ui->profileListWidget->setVisible(isProfileListVisible);
+    if (ui->profilesBar->isVisible()) {
+        ui->profilesButton->setText("Show profiles");
+        ui->profilesBar->setVisible(false);
+    } else {
+        ui->profilesButton->setText("Hide profiles");
+        ui->profilesBar->setVisible(true);
+    }
 }
 
 void Player::on_newWindowButton_clicked() {
@@ -245,13 +254,6 @@ void Player::on_newWindowButton_clicked() {
 }
 
 void Player::on_profileListWidget_itemDoubleClicked(QListWidgetItem *item) {
-    PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
-
-    PlayerPage *newPage = buildPage(item->text());
-    ui->webEngineView->setPage(newPage);
-    ui->webEngineView->page()->setUrl(QUrl(baseUrl));
-
-    ui->profileTextbox->setText(item->text());
-
-    delete oldPage;
+    Player *w = new Player(baseUrl, openBrowser, nullptr, item->text());
+    w->show();
 }

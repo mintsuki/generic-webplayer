@@ -7,17 +7,22 @@
 #include <QListWidgetItem>
 #include <vector>
 
-class ProfileList {
+class ProfileList : public QObject {
+    Q_OBJECT
+
 public:
     explicit ProfileList();
     ~ProfileList();
 
     QWebEngineProfile *getProfile(const QString &name);
-    std::vector<QWebEngineProfile *> getProfileList();
+    void getProfileList();
     QWebEngineProfile *newProfile(const QString &name);
 
 private:
     std::vector<QWebEngineProfile *> list;
+
+signals:
+    void profileListChanged(std::vector<QWebEngineProfile *> list);
 };
 
 extern ProfileList *profileList;
@@ -76,15 +81,14 @@ private slots:
     void on_profilesButton_clicked();
     void on_newWindowButton_clicked();
     void on_profileListWidget_itemDoubleClicked(QListWidgetItem *item);
+    void profileListChanged(std::vector<QWebEngineProfile *> list);
 
 private:
     PlayerPage *buildPage(const QString &profile, PlayerPage *page = nullptr);
-    void refreshProfileList();
 
     Ui::Player *ui;
     QUrl baseUrl;
     bool openBrowser;
-    bool isProfileListVisible;
 };
 
 #endif // PLAYER_H
