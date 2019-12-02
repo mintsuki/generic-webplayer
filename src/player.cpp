@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QWebEngineNotification>
+#include <unistd.h>
 
 PlayerPage::PlayerPage(QWebEngineProfile *profile, bool openBrowser, QObject *parent) : QWebEnginePage(profile, parent) {
     this->openBrowser = openBrowser;
@@ -63,13 +64,14 @@ QIcon *playerIcon = nullptr;
 QSystemTrayIcon *trayIcon = nullptr;
 
 static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
-    if (system((QString("notify-send --app-name='@@player_nice_name@@' '")
-              + n->title()
-              + QString("' '")
-              + n->message()
-              + QString("'"))
-               .toStdString().c_str())) {
-        trayIcon->showMessage(n->title(), n->message());
+    if (!fork()) {
+        execlp("notify-send",
+               "notify-send",
+               "--app-name=@@player_nice_name@@",
+               n->title().toStdString().c_str(),
+               n->message().toStdString().c_str(),
+               nullptr);
+        _exit(1);
     }
     n->show();
 }
