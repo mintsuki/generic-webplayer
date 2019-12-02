@@ -63,7 +63,15 @@ QIcon *playerIcon = nullptr;
 QSystemTrayIcon *trayIcon = nullptr;
 
 static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
-    trayIcon->showMessage(n->title(), n->message());
+    if (system((QString("notify-send --app-name='@@player_nice_name@@' '")
+              + n->title()
+              + QString("' '")
+              + n->message()
+              + QString("'"))
+               .toStdString().c_str())) {
+        trayIcon->showMessage(n->title(), n->message());
+    }
+    n->show();
 }
 
 ProfileList::ProfileList() {
