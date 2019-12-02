@@ -5,6 +5,7 @@
 #include <QWebEnginePage>
 #include <QWebEngineView>
 #include <QListWidgetItem>
+#include <QSystemTrayIcon>
 #include <vector>
 
 class ProfileList : public QObject {
@@ -26,6 +27,8 @@ signals:
 };
 
 extern ProfileList *profileList;
+extern QIcon *playerIcon;
+extern QSystemTrayIcon *trayIcon;
 
 class DummyPage : public QWebEnginePage {
     Q_OBJECT

@@ -28,3 +28,6 @@ HEADERS += \
 FORMS += \
     player.ui \
     playerwebdialog.ui
+
+RESOURCES += \
+    resources.qrc

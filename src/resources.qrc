@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>player.icon</file>
+    </qresource>
+</RCC>

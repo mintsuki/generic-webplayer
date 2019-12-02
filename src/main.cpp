@@ -11,6 +11,8 @@
 [[noreturn]] static void signal_handler(int s) {
     (void)s;
     delete profileList;
+    delete playerIcon;
+    delete trayIcon;
     remove(LOCK_FNAME);
     _exit(2);
 }
@@ -43,6 +45,9 @@ int main(int argc, char *argv[]) {
     }
 
     profileList = new ProfileList;
+    playerIcon  = new QIcon(":/images/player.icon");
+    trayIcon    = new QSystemTrayIcon(*playerIcon);
+    trayIcon->show();
 
     Player *w;
     if (argc > 1) {
@@ -54,6 +59,8 @@ int main(int argc, char *argv[]) {
     int ret = a.exec();
 
     delete profileList;
+    delete playerIcon;
+    delete trayIcon;
     remove(LOCK_FNAME);
     return ret;
 }

@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QDir>
+#include <QWebEngineNotification>
 
 PlayerPage::PlayerPage(QWebEngineProfile *profile, bool openBrowser, QObject *parent) : QWebEnginePage(profile, parent) {
     this->openBrowser = openBrowser;
@@ -58,6 +59,13 @@ bool DummyPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigat
     return false;
 }
 
+QIcon *playerIcon = nullptr;
+QSystemTrayIcon *trayIcon = nullptr;
+
+static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
+    trayIcon->showMessage(n->title(), n->message());
+}
+
 ProfileList::ProfileList() {
     QDir profilesDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QString("/QtWebEngine"));
     QStringList profiles = profilesDir.entryList();
@@ -70,6 +78,9 @@ ProfileList::ProfileList() {
             QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
             list.push_back(newProfile);
         }
+    }
+    foreach (QWebEngineProfile *p, list) {
+        p->setNotificationPresenter(showNotification);
     }
 }
 
@@ -97,6 +108,7 @@ void ProfileList::getProfileList() {
 QWebEngineProfile *ProfileList::newProfile(const QString &name) {
     QWebEngineProfile *p = new QWebEngineProfile(name);
     list.push_back(p);
+    p->setNotificationPresenter(showNotification);
     emit profileListChanged(list);
     return p;
 }
@@ -174,6 +186,12 @@ void Player::profileListChanged(std::vector<QWebEngineProfile *> list) {
 
 void Player::grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f) {
     qDebug() << q << f;
+
+    if (f == QWebEnginePage::Notifications) {
+        ui->webEngineView->page()->setFeaturePermission(q, f,
+            QWebEnginePage::PermissionGrantedByUser);
+        return;
+    }
 
     QString s;
     QDebug d(&s);
