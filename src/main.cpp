@@ -49,13 +49,11 @@ int main(int argc, char *argv[]) {
     trayIcon    = new QSystemTrayIcon(*playerIcon);
     trayIcon->show();
 
-    Player *w;
-    if (argc > 1) {
-        w = new Player(QUrl(argv[1]), false);
-    } else {
-        w = new Player(QUrl("@@webapp_url@@"), true);
-    }
-    w->show();
+    PlayerPage *page   = new PlayerPage(profileList->getProfile("Default"));
+    Player     *player = new Player(page, true);
+    page->setUrl(QUrl::fromUserInput("@@webapp_url@@"));
+    player->show();
+
     int ret = a.exec();
 
     delete profileList;

@@ -12,9 +12,7 @@
 #include <QProcess>
 #include <unistd.h>
 
-PlayerPage::PlayerPage(QWebEngineProfile *profile, bool openBrowser, QObject *parent) : QWebEnginePage(profile, parent) {
-    this->openBrowser = openBrowser;
-}
+PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
@@ -32,13 +30,13 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
             return p;
         }
         default: {
-            if (openBrowser) {
+            if (parentPlayer->ui->openBrowserCheckbox->isChecked()) {
                 DummyPage *p = new DummyPage(profile());
                 pagesToDestroy.push_back(p);
                 return p;
             } else {
-                PlayerPage *p  = new PlayerPage(profile(), openBrowser);
-                Player *player = new Player(QUrl("@@webapp_url@@"), openBrowser, p);
+                PlayerPage *p  = new PlayerPage(profile());
+                Player *player = new Player(p, false);
                 player->show();
                 return p;
             }
@@ -50,6 +48,10 @@ PlayerPage::~PlayerPage() {
     foreach (DummyPage *p, pagesToDestroy) {
         delete p;
     }
+}
+
+void PlayerPage::setParentPlayer(Player *parentPlayer) {
+    this->parentPlayer = parentPlayer;
 }
 
 DummyPage::DummyPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
@@ -80,20 +82,21 @@ static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
 }
 
 ProfileList::ProfileList() {
+    QWebEngineProfile::defaultProfile()->setNotificationPresenter(showNotification);
+    list.push_back(QWebEngineProfile::defaultProfile());
+
     QDir profilesDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QString("/QtWebEngine"));
+    if (!profilesDir.exists())
+        return;
+
     QStringList profiles = profilesDir.entryList();
+
     foreach (QString profile, profiles) {
-        if (profile == "." || profile == "..") {
-            continue;
-        } else if (profile == "Default") {
-            list.push_back(QWebEngineProfile::defaultProfile());
-        } else {
+        if (profile != "." && profile != ".." && profile != "Default") {
             QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
+            newProfile->setNotificationPresenter(showNotification);
             list.push_back(newProfile);
         }
-    }
-    foreach (QWebEngineProfile *p, list) {
-        p->setNotificationPresenter(showNotification);
     }
 }
 
@@ -111,14 +114,7 @@ QWebEngineProfile *ProfileList::getProfile(const QString &name) {
             return p;
         }
     }
-    return nullptr;
-}
 
-void ProfileList::getProfileList() {
-    emit profileListChanged(list);
-}
-
-QWebEngineProfile *ProfileList::newProfile(const QString &name) {
     QWebEngineProfile *p = new QWebEngineProfile(name);
     list.push_back(p);
     p->setNotificationPresenter(showNotification);
@@ -126,38 +122,18 @@ QWebEngineProfile *ProfileList::newProfile(const QString &name) {
     return p;
 }
 
-ProfileList *profileList = nullptr;
-
-PlayerPage *Player::buildPage(const QString &profile, PlayerPage *page) {
-    PlayerPage *newPage;
-
-    if (page == nullptr) {
-        QWebEngineProfile *p = profileList->getProfile(profile);
-        if (p == nullptr)
-            p = profileList->newProfile(profile);
-
-        newPage = new PlayerPage(p, openBrowser);
-    } else {
-        newPage = page;
-    }
-
-    newPage->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
-
-    connect(newPage,
-            SIGNAL(featurePermissionRequested(const QUrl &, QWebEnginePage::Feature)),
-            this,
-            SLOT(grantFeaturePermission(const QUrl &, QWebEnginePage::Feature)));
-
-    return newPage;
+void ProfileList::getProfileList() {
+    emit profileListChanged(list);
 }
 
-Player::Player(const QUrl &baseUrl, bool openBrowser, PlayerPage *initialPage, const QString &profile, QWidget *parent) :
+ProfileList *profileList = nullptr;
+
+Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::Player) {
     ui->setupUi(this);
 
-    this->baseUrl     = baseUrl;
-    this->openBrowser = openBrowser;
+    page->setParentPlayer(this);
 
     setAttribute(Qt::WA_DeleteOnClose);
     showMaximized();
@@ -170,24 +146,24 @@ Player::Player(const QUrl &baseUrl, bool openBrowser, PlayerPage *initialPage, c
 
     profileList->getProfileList();
 
-    if (!initialPage) {
-        ui->profileTextbox->setText(profile);
-        PlayerPage *newPage = buildPage(profile);
-        ui->webEngineView->setPage(newPage);
-        ui->webEngineView->page()->setUrl(QUrl(baseUrl));
-    } else {
-        ui->profileTextbox->setText(initialPage->profile()->storageName());
-        buildPage("", initialPage);
-        ui->webEngineView->setPage(initialPage);
-    }
+    ui->profileTextbox->setText(page->profile()->storageName());
+
+    page->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
+
+    connect(page,
+            SIGNAL(featurePermissionRequested(const QUrl &, QWebEnginePage::Feature)),
+            this,
+            SLOT(grantFeaturePermission(const QUrl &, QWebEnginePage::Feature)));
+
+    ui->webEngineView->setPage(page);
 
     ui->openBrowserCheckbox->setCheckState(openBrowser ? Qt::Checked : Qt::Unchecked);
 }
 
 Player::~Player() {
-    PlayerPage *oldPage = static_cast<PlayerPage *>(ui->webEngineView->page());
+    PlayerPage *page = static_cast<PlayerPage *>(ui->webEngineView->page());
+    delete page;
     delete ui;
-    delete oldPage;
 }
 
 void Player::profileListChanged(std::vector<QWebEngineProfile *> list) {
@@ -242,9 +218,9 @@ void Player::on_webEngineView_urlChanged(const QUrl &arg1) {
 }
 
 void Player::on_urlTextbox_returnPressed() {
-    PlayerPage *p  = new PlayerPage(ui->webEngineView->page()->profile(), false);
-    Player *player = new Player(baseUrl, false, p);
-    p->setUrl(QUrl::fromUserInput(ui->urlTextbox->text()));
+    PlayerPage *page = new PlayerPage(ui->webEngineView->page()->profile());
+    Player *player   = new Player(page, false);
+    page->setUrl(QUrl::fromUserInput(ui->urlTextbox->text()));
     player->show();
 }
 
@@ -254,12 +230,6 @@ void Player::on_backButton_clicked() {
 
 void Player::on_forwardsButton_clicked() {
     ui->webEngineView->forward();
-}
-
-void Player::on_openBrowserCheckbox_stateChanged(int arg1) {
-    bool b = (arg1 == Qt::Checked);
-    openBrowser = b;
-    static_cast<PlayerPage *>(ui->webEngineView->page())->openBrowser = b;
 }
 
 void Player::toggleProfilesBar() {
@@ -273,9 +243,11 @@ void Player::toggleProfilesBar() {
 }
 
 void Player::on_profileTextbox_returnPressed() {
-    Player *w = new Player(baseUrl, openBrowser, nullptr, ui->profileTextbox->text());
+    PlayerPage *page = new PlayerPage(profileList->getProfile(ui->profileTextbox->text()));
+    Player *player   = new Player(page, true);
+    page->setUrl(QUrl::fromUserInput("@@webapp_url@@"));
+    player->show();
     ui->profileTextbox->setText(ui->webEngineView->page()->profile()->storageName());
-    w->show();
     toggleProfilesBar();
 }
 
@@ -283,13 +255,10 @@ void Player::on_profilesButton_clicked() {
     toggleProfilesBar();
 }
 
-void Player::on_newWindowButton_clicked() {
-    Player *w = new Player(baseUrl, openBrowser, nullptr, ui->profileTextbox->text());
-    w->show();
-}
-
 void Player::on_profileListWidget_itemDoubleClicked(QListWidgetItem *item) {
-    Player *w = new Player(baseUrl, openBrowser, nullptr, item->text());
-    w->show();
+    PlayerPage *page = new PlayerPage(profileList->getProfile(item->text()));
+    Player *player   = new Player(page, true);
+    page->setUrl(QUrl::fromUserInput("@@webapp_url@@"));
+    player->show();
     toggleProfilesBar();
 }

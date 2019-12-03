@@ -17,7 +17,6 @@ public:
 
     QWebEngineProfile *getProfile(const QString &name);
     void getProfileList();
-    QWebEngineProfile *newProfile(const QString &name);
 
 private:
     std::vector<QWebEngineProfile *> list;
@@ -40,20 +39,23 @@ protected:
     bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) override;
 };
 
+class Player;
+
 class PlayerPage : public QWebEnginePage {
     Q_OBJECT
 
 public:
-    explicit PlayerPage(QWebEngineProfile *profile, bool openBrowser, QObject *parent = nullptr);
+    explicit PlayerPage(QWebEngineProfile *profile, QObject *parent = nullptr);
     ~PlayerPage() override;
 
-    bool openBrowser;
+    void setParentPlayer(Player *parentPlayer);
 
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
 
 private:
     std::vector<DummyPage *> pagesToDestroy;
+    Player *parentPlayer;
 };
 
 QT_BEGIN_NAMESPACE
@@ -64,12 +66,10 @@ class Player : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit Player(const QUrl &baseUrl,
-                    bool openBrowser,
-                    PlayerPage *initialPage = nullptr,
-                    const QString &profile = "Default",
-                    QWidget *parent = nullptr);
+    explicit Player(PlayerPage *initialPage, bool openBrowser, QWidget *parent = nullptr);
     ~Player();
+
+    Ui::Player *ui;
 
 private slots:
     void on_webEngineView_titleChanged(const QString &title);
@@ -78,21 +78,14 @@ private slots:
     void on_urlTextbox_returnPressed();
     void on_backButton_clicked();
     void on_forwardsButton_clicked();
-    void on_openBrowserCheckbox_stateChanged(int arg1);
     void grantFeaturePermission(const QUrl &q, QWebEnginePage::Feature f);
     void on_profileTextbox_returnPressed();
     void on_profilesButton_clicked();
-    void on_newWindowButton_clicked();
     void on_profileListWidget_itemDoubleClicked(QListWidgetItem *item);
     void profileListChanged(std::vector<QWebEngineProfile *> list);
 
 private:
-    PlayerPage *buildPage(const QString &profile, PlayerPage *page = nullptr);
     void toggleProfilesBar();
-
-    Ui::Player *ui;
-    QUrl baseUrl;
-    bool openBrowser;
 };
 
 #endif // PLAYER_H
