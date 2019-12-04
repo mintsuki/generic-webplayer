@@ -14,12 +14,9 @@ protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
 };
 
-namespace Ui {
-class PlayerWebDialog;
-}
+namespace Ui { class PlayerWebDialog; }
 
-class PlayerWebDialog : public QMainWindow
-{
+class PlayerWebDialog : public QMainWindow {
     Q_OBJECT
 
 public:

@@ -17,11 +17,6 @@ PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEngine
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
 
-    foreach (DummyPage *p, pagesToDestroy) {
-        delete p;
-    }
-    pagesToDestroy.clear();
-
     switch (type) {
         case QWebEnginePage::WebDialog: {
             WebDialogPage *p   = new WebDialogPage(profile());
@@ -32,7 +27,6 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
         default: {
             if (parentPlayer->ui->openBrowserCheckbox->isChecked()) {
                 DummyPage *p = new DummyPage(profile());
-                pagesToDestroy.push_back(p);
                 return p;
             } else {
                 PlayerPage *p  = new PlayerPage(profile());
@@ -41,12 +35,6 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
                 return p;
             }
         }
-    }
-}
-
-PlayerPage::~PlayerPage() {
-    foreach (DummyPage *p, pagesToDestroy) {
-        delete p;
     }
 }
 
@@ -60,6 +48,8 @@ bool DummyPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigat
     qDebug() << "acceptNavigationRequest url: " << url << " type: " << type << " isMainFrame: " << isMainFrame;
 
     QDesktopServices::openUrl(url);
+
+    deleteLater();
     return false;
 }
 

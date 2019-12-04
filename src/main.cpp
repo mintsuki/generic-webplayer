@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
         fclose(lock);
     }
 
-    profileList = new ProfileList;
     playerIcon  = new QIcon(":/images/player.icon");
     trayIcon    = new QSystemTrayIcon(*playerIcon);
     trayIcon->show();
+    profileList = new ProfileList;
 
     PlayerPage *page   = new PlayerPage(profileList->getProfile("Default"));
     Player     *player = new Player(page, true);

@@ -46,7 +46,6 @@ class PlayerPage : public QWebEnginePage {
 
 public:
     explicit PlayerPage(QWebEngineProfile *profile, QObject *parent = nullptr);
-    ~PlayerPage() override;
 
     void setParentPlayer(Player *parentPlayer);
 
@@ -54,13 +53,10 @@ protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
 
 private:
-    std::vector<DummyPage *> pagesToDestroy;
     Player *parentPlayer;
 };
 
-QT_BEGIN_NAMESPACE
 namespace Ui { class Player; }
-QT_END_NAMESPACE
 
 class Player : public QMainWindow {
     Q_OBJECT

@@ -1,6 +1,8 @@
 #include "playerwebdialog.h"
 #include "ui_playerwebdialog.h"
 
+#include <QWebEngineSettings>
+
 WebDialogPage::WebDialogPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
 
 QWebEnginePage *WebDialogPage::createWindow(QWebEnginePage::WebWindowType type) {
@@ -13,27 +15,26 @@ QWebEnginePage *WebDialogPage::createWindow(QWebEnginePage::WebWindowType type) 
 }
 
 PlayerWebDialog::PlayerWebDialog(WebDialogPage *page, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::PlayerWebDialog)
-{
+        QMainWindow(parent),
+        ui(new Ui::PlayerWebDialog) {
     ui->setupUi(this);
 
     setAttribute(Qt::WA_DeleteOnClose);
 
-    connect(
-        page,
-        SIGNAL(windowCloseRequested()),
-        this,
-        SLOT(windowCloseRequested())
-    );
+    connect(page,
+            SIGNAL(windowCloseRequested()),
+            this,
+            SLOT(windowCloseRequested()));
+
+    page->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
     ui->webEngineView->setPage(page);
 }
 
 PlayerWebDialog::~PlayerWebDialog() {
     WebDialogPage *oldPage = static_cast<WebDialogPage *>(ui->webEngineView->page());
-    delete ui;
     delete oldPage;
+    delete ui;
 }
 
 void PlayerWebDialog::on_webEngineView_iconChanged(const QIcon &arg1) {
