@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QWebEngineNotification>
 #include <QProcess>
+#include <QAction>
 #include <unistd.h>
 
 PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
@@ -197,6 +198,7 @@ void Player::on_webEngineView_titleChanged(const QString &title) {
                     : (" -- [Profile: " + profile + "]")
                    )
                   );
+    updateNavigationButtons();
 }
 
 void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
@@ -205,6 +207,11 @@ void Player::on_webEngineView_iconChanged(const QIcon &arg1) {
 
 void Player::on_webEngineView_urlChanged(const QUrl &arg1) {
     ui->urlTextbox->setText(arg1.toString());
+    updateNavigationButtons();
+}
+
+void Player::on_webEngineView_loadFinished(bool) {
+    updateNavigationButtons();
 }
 
 void Player::on_urlTextbox_returnPressed() {
@@ -220,6 +227,11 @@ void Player::on_backButton_clicked() {
 
 void Player::on_forwardsButton_clicked() {
     ui->webEngineView->forward();
+}
+
+void Player::updateNavigationButtons() {
+    ui->backButton->setEnabled(ui->webEngineView->pageAction(QWebEnginePage::Back)->isEnabled());
+    ui->forwardsButton->setEnabled(ui->webEngineView->pageAction(QWebEnginePage::Forward)->isEnabled());
 }
 
 void Player::toggleProfilesBar() {

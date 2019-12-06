@@ -71,6 +71,7 @@ private slots:
     void on_webEngineView_titleChanged(const QString &title);
     void on_webEngineView_iconChanged(const QIcon &arg1);
     void on_webEngineView_urlChanged(const QUrl &arg1);
+    void on_webEngineView_loadFinished(bool arg1);
     void on_urlTextbox_returnPressed();
     void on_backButton_clicked();
     void on_forwardsButton_clicked();
@@ -82,6 +83,7 @@ private slots:
 
 private:
     void toggleProfilesBar();
+    void updateNavigationButtons();
 };
 
 #endif // PLAYER_H
