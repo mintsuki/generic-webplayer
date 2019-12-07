@@ -13,6 +13,8 @@
 #include <QAction>
 #include <unistd.h>
 
+#include "config.h"
+
 PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
@@ -54,18 +56,19 @@ bool DummyPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigat
     return false;
 }
 
-QIcon *playerIcon = nullptr;
 QSystemTrayIcon *trayIcon = nullptr;
 
 static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
     QProcess p;
     p.start("notify-send",
             QStringList()
-            << "--app-name=@@player_nice_name@@"
+            << "--app-name=" PLAYER_NICE_NAME
             << n->title()
             << n->message());
     if (!p.waitForStarted()) {
+        trayIcon->show();
         trayIcon->showMessage(n->title(), n->message());
+        trayIcon->hide();
     } else {
         p.waitForFinished();
     }
@@ -247,7 +250,7 @@ void Player::toggleProfilesBar() {
 void Player::on_profileTextbox_returnPressed() {
     PlayerPage *page = new PlayerPage(profileList->getProfile(ui->profileTextbox->text()));
     Player *player   = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput("@@webapp_url@@"));
+    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
     player->show();
     ui->profileTextbox->setText(ui->webEngineView->page()->profile()->storageName());
     toggleProfilesBar();
@@ -260,7 +263,7 @@ void Player::on_profilesButton_clicked() {
 void Player::on_profileListWidget_itemDoubleClicked(QListWidgetItem *item) {
     PlayerPage *page = new PlayerPage(profileList->getProfile(item->text()));
     Player *player   = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput("@@webapp_url@@"));
+    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
     player->show();
     toggleProfilesBar();
 }

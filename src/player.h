@@ -26,7 +26,6 @@ signals:
 };
 
 extern ProfileList *profileList;
-extern QIcon *playerIcon;
 extern QSystemTrayIcon *trayIcon;
 
 class DummyPage : public QWebEnginePage {

@@ -6,12 +6,13 @@
 #include <cstdio>
 #include <csignal>
 
-#define LOCK_FNAME  (("/tmp/@@player_name@@-lock." + std::to_string(getuid())).c_str())
+#include "config.h"
+
+#define LOCK_FNAME  (("/tmp/" PLAYER_NAME "-lock." + std::to_string(getuid())).c_str())
 
 [[noreturn]] static void signal_handler(int s) {
     (void)s;
     delete profileList;
-    delete playerIcon;
     delete trayIcon;
     remove(LOCK_FNAME);
     _exit(2);
@@ -32,7 +33,7 @@ int main(int argc, char *argv[]) {
     if (access(LOCK_FNAME, F_OK) != -1) {
         // The lock is already acquired
         QMessageBox::critical(nullptr, "Application running",
-                                       "Another instance of @@player_nice_name@@ was detected running.",
+                                       "Another instance of " PLAYER_NICE_NAME " was detected running.",
                                        QMessageBox::Ok);
         return 1;
     } else {
@@ -44,20 +45,17 @@ int main(int argc, char *argv[]) {
         fclose(lock);
     }
 
-    playerIcon  = new QIcon(":/images/player.icon");
-    trayIcon    = new QSystemTrayIcon(*playerIcon);
-    trayIcon->show();
+    trayIcon    = new QSystemTrayIcon;
     profileList = new ProfileList;
 
     PlayerPage *page   = new PlayerPage(profileList->getProfile("Default"));
     Player     *player = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput("@@webapp_url@@"));
+    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
     player->show();
 
     int ret = a.exec();
 
     delete profileList;
-    delete playerIcon;
     delete trayIcon;
     remove(LOCK_FNAME);
     return ret;

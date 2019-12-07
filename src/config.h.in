@@ -1,0 +1,8 @@
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
+#define PLAYER_NAME       "@PLAYER_NAME@"
+#define PLAYER_NICE_NAME  "@PLAYER_NICE_NAME@"
+#define PLAYER_WEBAPP_URL "@PLAYER_WEBAPP_URL@"
+
+#endif // _CONFIG_H_

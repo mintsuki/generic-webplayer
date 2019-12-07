@@ -10,9 +10,6 @@
     <height>768</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>@@player_nice_name@@</string>
-  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
