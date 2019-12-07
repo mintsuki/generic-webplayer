@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
-if(NOT DEFINED ${PLAYER_NAME})
+if(NOT DEFINED PLAYER_NAME)
     set(PLAYER_NAME "generic-webplayer")
 endif()
-if(NOT DEFINED ${PLAYER_NICE_NAME})
+if(NOT DEFINED PLAYER_NICE_NAME)
     set(PLAYER_NICE_NAME "Generic WebPlayer")
 endif()
-if(NOT DEFINED ${PLAYER_WEBAPP_URL})
+if(NOT DEFINED PLAYER_WEBAPP_URL)
     set(PLAYER_WEBAPP_URL "about:blank")
 endif()
 
