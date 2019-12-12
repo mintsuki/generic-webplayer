@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+message("Build type: ${CMAKE_BUILD_TYPE}")
+
 if(NOT DEFINED PLAYER_NAME)
     set(PLAYER_NAME "generic-webplayer")
 endif()
