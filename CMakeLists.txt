@@ -46,4 +46,6 @@ add_executable(${PLAYER_NAME}
 
 target_link_libraries(${PLAYER_NAME} PRIVATE Qt5::Widgets Qt5::WebEngineWidgets)
 
+set_target_properties(${PLAYER_NAME} PROPERTIES LINK_FLAGS_RELEASE -s)
+
 install(TARGETS ${PLAYER_NAME})
