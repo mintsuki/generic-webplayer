@@ -3,12 +3,15 @@
 
 #include "playerwebdialog.h"
 
+#include <QtGlobal>
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QDir>
-#include <QWebEngineNotification>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+#   include <QWebEngineNotification>
+#endif
 #include <QProcess>
 #include <QAction>
 #include <unistd.h>
@@ -58,6 +61,8 @@ bool DummyPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigat
 
 QSystemTrayIcon *trayIcon = nullptr;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+
 static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
     QProcess p;
     p.start("notify-send",
@@ -75,8 +80,12 @@ static void showNotification(std::unique_ptr<QWebEngineNotification> n) {
     n->show();
 }
 
+#endif
+
 ProfileList::ProfileList() {
-    QWebEngineProfile::defaultProfile()->setNotificationPresenter(showNotification);
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+        QWebEngineProfile::defaultProfile()->setNotificationPresenter(showNotification);
+    #endif
     list.push_back(QWebEngineProfile::defaultProfile());
 
     QDir profilesDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QString("/QtWebEngine"));
@@ -88,7 +97,9 @@ ProfileList::ProfileList() {
     foreach (QString profile, profiles) {
         if (profile != "." && profile != ".." && profile != "Default") {
             QWebEngineProfile *newProfile = new QWebEngineProfile(profile);
-            newProfile->setNotificationPresenter(showNotification);
+            #if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+                newProfile->setNotificationPresenter(showNotification);
+            #endif
             list.push_back(newProfile);
         }
     }
@@ -111,7 +122,9 @@ QWebEngineProfile *ProfileList::getProfile(const QString &name) {
 
     QWebEngineProfile *p = new QWebEngineProfile(name);
     list.push_back(p);
-    p->setNotificationPresenter(showNotification);
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+        p->setNotificationPresenter(showNotification);
+    #endif
     emit profileListChanged(list);
     return p;
 }
