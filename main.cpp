@@ -8,7 +8,7 @@
 
 #include "config.h"
 
-#define LOCK_FNAME  (("/tmp/" PLAYER_NAME "-lock." + std::to_string(getuid())).c_str())
+const char *LOCK_FNAME = nullptr;
 
 [[noreturn]] static void signal_handler(int s) {
     (void)s;
@@ -19,6 +19,8 @@
 }
 
 int main(int argc, char *argv[]) {
+    LOCK_FNAME = ("/tmp/" PLAYER_NAME "-lock." + std::to_string(getuid())).c_str();
+
     // Hook handler for SIGINT and SIGTERM, so in case of Ctrl+C or similar we delete the lock.
     struct sigaction sig;
     sig.sa_handler = signal_handler;
