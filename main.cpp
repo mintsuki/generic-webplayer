@@ -8,18 +8,18 @@
 
 #include "config.h"
 
-const char *LOCK_FNAME = nullptr;
+std::string LOCK_FNAME;
 
 [[noreturn]] static void signal_handler(int s) {
     (void)s;
     delete profileList;
     delete trayIcon;
-    remove(LOCK_FNAME);
+    remove(LOCK_FNAME.c_str());
     _exit(2);
 }
 
 int main(int argc, char *argv[]) {
-    LOCK_FNAME = ("/tmp/" PLAYER_NAME "-lock." + std::to_string(getuid())).c_str();
+    LOCK_FNAME = "/tmp/" PLAYER_NAME "-lock." + std::to_string(getuid());
 
     // Hook handler for SIGINT and SIGTERM, so in case of Ctrl+C or similar we delete the lock.
     struct sigaction sig;
@@ -32,14 +32,14 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     // Check the lock for other open instances
-    if (access(LOCK_FNAME, F_OK) != -1) {
+    if (access(LOCK_FNAME.c_str(), F_OK) != -1) {
         // The lock is already acquired
         QMessageBox::critical(nullptr, "Application running",
                                        "Another instance of " PLAYER_NICE_NAME " was detected running.",
                                        QMessageBox::Ok);
         return 1;
     } else {
-        FILE *lock = fopen(LOCK_FNAME, "w");
+        FILE *lock = fopen(LOCK_FNAME.c_str(), "w");
         if (lock == nullptr) {
             // Something happened
             return 2;
@@ -59,6 +59,6 @@ int main(int argc, char *argv[]) {
 
     delete profileList;
     delete trayIcon;
-    remove(LOCK_FNAME);
+    remove(LOCK_FNAME.c_str());
     return ret;
 }
