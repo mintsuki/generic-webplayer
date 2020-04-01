@@ -50,6 +50,7 @@ public:
 
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
+    QStringList chooseFiles(QWebEnginePage::FileSelectionMode mode, const QStringList &oldFiles, const QStringList &acceptedMimeTypes) override;
 
 private:
     Player *parentPlayer;

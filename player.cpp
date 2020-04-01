@@ -14,6 +14,7 @@
 #endif
 #include <QProcess>
 #include <QAction>
+#include <QFileDialog>
 #include <unistd.h>
 
 #include "config.h"
@@ -46,6 +47,26 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
 
 void PlayerPage::setParentPlayer(Player *parentPlayer) {
     this->parentPlayer = parentPlayer;
+}
+
+QStringList PlayerPage::chooseFiles(QWebEnginePage::FileSelectionMode mode,
+                                    const QStringList &oldFiles,
+                                    const QStringList &acceptedMimeTypes) {
+    qDebug() << "chooseFiles" << mode << oldFiles << acceptedMimeTypes;
+
+    if (acceptedMimeTypes.isEmpty()) {
+        switch (mode) {
+            case QWebEnginePage::FileSelectOpenMultiple:
+                return QFileDialog::getOpenFileNames();
+            case QWebEnginePage::FileSelectOpen: {
+                QStringList l;
+                l << QFileDialog::getOpenFileName();
+                return l;
+            }
+        }
+    }
+
+    return QWebEnginePage::chooseFiles(mode, oldFiles, acceptedMimeTypes);
 }
 
 DummyPage::DummyPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
