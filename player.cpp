@@ -16,6 +16,10 @@
 #include <QAction>
 #include <QFileDialog>
 #include <unistd.h>
+#include <QSocketNotifier>
+#include <QSocketDescriptor>
+#include <sys/socket.h>
+#include <signal.h>
 
 #include "config.h"
 
@@ -154,12 +158,48 @@ void ProfileList::getProfileList() {
     emit profileListChanged(list);
 }
 
+int Player::sigusr1_sock[2];
+
+void Player::sigusr1_handler(int) {
+    char a = 1;
+    write(sigusr1_sock[0], &a, sizeof(a));
+}
+
+void Player::sigusr1_qt() {
+    sigusr1_sn->setEnabled(false);
+    char a = 1;
+    read(sigusr1_sock[1], &a, sizeof(a));
+
+    qDebug() << "Got SIGUSR1";
+    PlayerPage *page = new PlayerPage(QWebEngineProfile::defaultProfile());
+    Player *player   = new Player(page, true);
+    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
+    player->show();
+
+    sigusr1_sn->setEnabled(true);
+}
+
 ProfileList *profileList = nullptr;
 
 Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::Player) {
     ui->setupUi(this);
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigusr1_sock)) {
+        qFatal("Could not create SIGUSR1 socket pair");
+    }
+    sigusr1_sn = new QSocketNotifier(sigusr1_sock[1], QSocketNotifier::Read, this);
+    connect(sigusr1_sn, SIGNAL(activated(QSocketDescriptor)), this, SLOT(sigusr1_qt()));
+
+    struct sigaction sig;
+    sigemptyset(&sig.sa_mask);
+    sig.sa_flags =  0;
+    sig.sa_flags |= SA_RESTART;
+    sig.sa_handler = sigusr1_handler;
+    if (sigaction(SIGUSR1, &sig, nullptr)) {
+        qFatal("Could not connect SIGUSR1 signal");
+    }
 
     page->setParentPlayer(this);
 
