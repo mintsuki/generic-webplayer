@@ -158,14 +158,16 @@ void ProfileList::getProfileList() {
     emit profileListChanged(list);
 }
 
-int Player::sigusr1_sock[2];
+static int sigusr1_sock[2];
+static QSocketNotifier *sigusr1_sn;
+static bool sigusr1_hooked;
 
-void Player::sigusr1_handler(int) {
+static void sigusr1_handler(int) {
     char a = 1;
     write(sigusr1_sock[0], &a, sizeof(a));
 }
 
-void Player::sigusr1_qt() {
+static void sigusr1_qt() {
     sigusr1_sn->setEnabled(false);
     char a = 1;
     read(sigusr1_sock[1], &a, sizeof(a));
@@ -186,19 +188,24 @@ Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
         ui(new Ui::Player) {
     ui->setupUi(this);
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigusr1_sock)) {
-        qFatal("Could not create SIGUSR1 socket pair");
-    }
-    sigusr1_sn = new QSocketNotifier(sigusr1_sock[1], QSocketNotifier::Read, this);
-    connect(sigusr1_sn, SIGNAL(activated(QSocketDescriptor)), this, SLOT(sigusr1_qt()));
+    if (sigusr1_hooked == false) {
+        if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigusr1_sock)) {
+            qFatal("Could not create SIGUSR1 socket pair");
+        }
 
-    struct sigaction sig;
-    sigemptyset(&sig.sa_mask);
-    sig.sa_flags =  0;
-    sig.sa_flags |= SA_RESTART;
-    sig.sa_handler = sigusr1_handler;
-    if (sigaction(SIGUSR1, &sig, nullptr)) {
-        qFatal("Could not connect SIGUSR1 signal");
+        sigusr1_sn = new QSocketNotifier(sigusr1_sock[1], QSocketNotifier::Read);
+        connect(sigusr1_sn, &QSocketNotifier::activated, sigusr1_qt);
+
+        struct sigaction sig;
+        sigemptyset(&sig.sa_mask);
+        sig.sa_flags =  0;
+        sig.sa_flags |= SA_RESTART;
+        sig.sa_handler = sigusr1_handler;
+        if (sigaction(SIGUSR1, &sig, nullptr)) {
+            qFatal("Could not connect SIGUSR1 signal");
+        }
+
+        sigusr1_hooked = true;
     }
 
     page->setParentPlayer(this);

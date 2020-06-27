@@ -68,8 +68,6 @@ public:
 
     Ui::Player *ui;
 
-    static void sigusr1_handler(int s);
-
 private slots:
     void on_webEngineView_titleChanged(const QString &title);
     void on_webEngineView_iconChanged(const QIcon &arg1);
@@ -84,15 +82,9 @@ private slots:
     void on_profileListWidget_itemDoubleClicked(QListWidgetItem *item);
     void profileListChanged(std::vector<QWebEngineProfile *> list);
 
-public slots:
-    void sigusr1_qt();
-
 private:
     void toggleProfilesBar();
     void updateNavigationButtons();
-
-    static int sigusr1_sock[2];
-    QSocketNotifier *sigusr1_sn;
 };
 
 #endif // PLAYER_H
