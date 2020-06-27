@@ -218,6 +218,10 @@ Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
 
     page->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, true);
+    #endif
+
     connect(page,
             SIGNAL(featurePermissionRequested(const QUrl &, QWebEnginePage::Feature)),
             this,
