@@ -17,7 +17,6 @@
 #include <QFileDialog>
 #include <unistd.h>
 #include <QSocketNotifier>
-#include <QSocketDescriptor>
 #include <sys/socket.h>
 #include <signal.h>
 
