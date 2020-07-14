@@ -28,6 +28,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
+if(NOT EXISTS SingleApplication)
+    execute_process(COMMAND git clone https://github.com/itay-grudev/SingleApplication.git)
+endif()
+
+set(QAPPLICATION_CLASS QApplication CACHE STRING "Inheritance class for SingleApplication")
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/SingleApplication SingleApplication/build)
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
@@ -44,7 +51,7 @@ add_executable(${PLAYER_NAME}
   playerwebdialog.ui
 )
 
-target_link_libraries(${PLAYER_NAME} PRIVATE Qt5::Widgets Qt5::WebEngineWidgets)
+target_link_libraries(${PLAYER_NAME} PRIVATE Qt5::Widgets Qt5::WebEngineWidgets SingleApplication::SingleApplication)
 
 set_target_properties(${PLAYER_NAME} PROPERTIES LINK_FLAGS_RELEASE -s)
 
