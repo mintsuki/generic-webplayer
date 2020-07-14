@@ -1,6 +1,6 @@
 #include "player.h"
 #include <QApplication>
-#include "singleapplication.h"
+#include <SingleApplication>
 
 #include "config.h"
 

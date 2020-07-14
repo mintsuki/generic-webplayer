@@ -28,12 +28,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
-if(NOT EXISTS SingleApplication)
-    execute_process(COMMAND git clone https://github.com/itay-grudev/SingleApplication.git)
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/SingleApplication)
+    execute_process(COMMAND git clone https://github.com/itay-grudev/SingleApplication.git ${CMAKE_SOURCE_DIR}/SingleApplication)
 endif()
 
 set(QAPPLICATION_CLASS QApplication CACHE STRING "Inheritance class for SingleApplication")
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/SingleApplication SingleApplication/build)
+add_subdirectory(SingleApplication)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/config.h.in
