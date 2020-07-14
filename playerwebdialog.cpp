@@ -21,10 +21,7 @@ PlayerWebDialog::PlayerWebDialog(WebDialogPage *page, QWidget *parent) :
 
     setAttribute(Qt::WA_DeleteOnClose);
 
-    connect(page,
-            SIGNAL(windowCloseRequested()),
-            this,
-            SLOT(windowCloseRequested()));
+    connect(page, &WebDialogPage::windowCloseRequested, this, &PlayerWebDialog::windowCloseRequested);
 
     page->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 

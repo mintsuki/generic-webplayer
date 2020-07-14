@@ -166,10 +166,7 @@ Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
     showMaximized();
     ui->profilesBar->setVisible(false);
 
-    connect(profileList,
-            SIGNAL(profileListChanged(std::vector<QWebEngineProfile *>)),
-            this,
-            SLOT(profileListChanged(std::vector<QWebEngineProfile *>)));
+    connect(profileList, &ProfileList::profileListChanged, this, &Player::profileListChanged);
 
     profileList->getProfileList();
 
@@ -181,10 +178,7 @@ Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
         page->settings()->setAttribute(QWebEngineSettings::ScreenCaptureEnabled, true);
     #endif
 
-    connect(page,
-            SIGNAL(featurePermissionRequested(const QUrl &, QWebEnginePage::Feature)),
-            this,
-            SLOT(grantFeaturePermission(const QUrl &, QWebEnginePage::Feature)));
+    connect(page, &PlayerPage::featurePermissionRequested, this, &Player::grantFeaturePermission);
 
     ui->webEngineView->setPage(page);
 
