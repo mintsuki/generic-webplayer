@@ -6,8 +6,9 @@
 #include <QWebEngineView>
 #include <QListWidgetItem>
 #include <QSystemTrayIcon>
-#include <QSocketNotifier>
-#include <vector>
+#include <QVector>
+
+#include "config.h"
 
 class ProfileList : public QObject {
     Q_OBJECT
@@ -20,10 +21,10 @@ public:
     void getProfileList();
 
 private:
-    std::vector<QWebEngineProfile *> list;
+    QVector<QWebEngineProfile *> list;
 
 signals:
-    void profileListChanged(std::vector<QWebEngineProfile *> list);
+    void profileListChanged(QVector<QWebEngineProfile *> list);
 };
 
 extern ProfileList *profileList;
@@ -45,9 +46,7 @@ class PlayerPage : public QWebEnginePage {
     Q_OBJECT
 
 public:
-    explicit PlayerPage(QWebEngineProfile *profile, QObject *parent = nullptr);
-
-    void setParentPlayer(Player *parentPlayer);
+    explicit PlayerPage(QWebEngineProfile *profile, Player *parentPlayer, QObject *parent = nullptr);
 
 protected:
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
@@ -63,7 +62,7 @@ class Player : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit Player(PlayerPage *initialPage, bool openBrowser, QWidget *parent = nullptr);
+    explicit Player(QWebEngineProfile *profile, QUrl url = QUrl::fromUserInput(PLAYER_WEBAPP_URL), bool openBrowser = true, QWidget *parent = nullptr);
     ~Player();
 
     Ui::Player *ui;
@@ -80,7 +79,7 @@ private slots:
     void on_profileTextbox_returnPressed();
     void on_profilesButton_clicked();
     void on_profileListWidget_itemDoubleClicked(QListWidgetItem *item);
-    void profileListChanged(std::vector<QWebEngineProfile *> list);
+    void profileListChanged(QVector<QWebEngineProfile *> list);
 
 private:
     void toggleProfilesBar();

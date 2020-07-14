@@ -2,13 +2,8 @@
 #include <QApplication>
 #include <SingleApplication>
 
-#include "config.h"
-
 void runningInstance() {
-    PlayerPage *page   = new PlayerPage(profileList->getProfile("Default"));
-    Player     *player = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
-    player->show();
+    new Player(profileList->getProfile("Default"));
 }
 
 int main(int argc, char *argv[]) {
@@ -19,10 +14,7 @@ int main(int argc, char *argv[]) {
     trayIcon    = new QSystemTrayIcon;
     profileList = new ProfileList;
 
-    PlayerPage *page   = new PlayerPage(profileList->getProfile("Default"));
-    Player     *player = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
-    player->show();
+    new Player(profileList->getProfile("Default"));
 
     int ret = a.exec();
 

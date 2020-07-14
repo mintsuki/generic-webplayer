@@ -18,7 +18,10 @@
 
 #include "config.h"
 
-PlayerPage::PlayerPage(QWebEngineProfile *profile, QObject *parent) : QWebEnginePage(profile, parent) {}
+PlayerPage::PlayerPage(QWebEngineProfile *profile, Player *parentPlayer, QObject *parent) : QWebEnginePage(profile, parent) {
+    qDebug() << profile;
+    this->parentPlayer = parentPlayer;
+}
 
 QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
     qDebug() << "createWindow type: " << type;
@@ -35,17 +38,12 @@ QWebEnginePage *PlayerPage::createWindow(QWebEnginePage::WebWindowType type) {
                 DummyPage *p = new DummyPage(profile());
                 return p;
             } else {
-                PlayerPage *p  = new PlayerPage(profile());
-                Player *player = new Player(p, false);
+                Player *player = new Player(profile(), QUrl("about:blank"), false);
                 player->show();
-                return p;
+                return player->ui->webEngineView->page();
             }
         }
     }
-}
-
-void PlayerPage::setParentPlayer(Player *parentPlayer) {
-    this->parentPlayer = parentPlayer;
 }
 
 QStringList PlayerPage::chooseFiles(QWebEnginePage::FileSelectionMode mode,
@@ -155,22 +153,23 @@ void ProfileList::getProfileList() {
 
 ProfileList *profileList = nullptr;
 
-Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
+Player::Player(QWebEngineProfile *profile, QUrl url, bool openBrowser, QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::Player) {
     ui->setupUi(this);
 
-    page->setParentPlayer(this);
-
     setAttribute(Qt::WA_DeleteOnClose);
+
+    PlayerPage *page = new PlayerPage(profile, this);
+    ui->webEngineView->setPage(page);
+
     showMaximized();
     ui->profilesBar->setVisible(false);
 
     connect(profileList, &ProfileList::profileListChanged, this, &Player::profileListChanged);
-
     profileList->getProfileList();
 
-    ui->profileTextbox->setText(page->profile()->storageName());
+    ui->profileTextbox->setText(profile->storageName());
 
     page->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
 
@@ -183,6 +182,8 @@ Player::Player(PlayerPage *page, bool openBrowser, QWidget *parent) :
     ui->webEngineView->setPage(page);
 
     ui->openBrowserCheckbox->setCheckState(openBrowser ? Qt::Checked : Qt::Unchecked);
+
+    page->setUrl(url);
 }
 
 Player::~Player() {
@@ -191,7 +192,7 @@ Player::~Player() {
     delete ui;
 }
 
-void Player::profileListChanged(std::vector<QWebEngineProfile *> list) {
+void Player::profileListChanged(QVector<QWebEngineProfile *> list) {
     ui->profileListWidget->clear();
     foreach (QWebEngineProfile *profile, list) {
         ui->profileListWidget->addItem(profile->storageName());
@@ -249,10 +250,7 @@ void Player::on_webEngineView_loadFinished(bool) {
 }
 
 void Player::on_urlTextbox_returnPressed() {
-    PlayerPage *page = new PlayerPage(ui->webEngineView->page()->profile());
-    Player *player   = new Player(page, false);
-    page->setUrl(QUrl::fromUserInput(ui->urlTextbox->text()));
-    player->show();
+    new Player(ui->webEngineView->page()->profile(), QUrl::fromUserInput(ui->urlTextbox->text()), false);
 }
 
 void Player::on_backButton_clicked() {
@@ -279,10 +277,7 @@ void Player::toggleProfilesBar() {
 }
 
 void Player::on_profileTextbox_returnPressed() {
-    PlayerPage *page = new PlayerPage(profileList->getProfile(ui->profileTextbox->text()));
-    Player *player   = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
-    player->show();
+    new Player(profileList->getProfile(ui->profileTextbox->text()));
     ui->profileTextbox->setText(ui->webEngineView->page()->profile()->storageName());
     toggleProfilesBar();
 }
@@ -292,9 +287,6 @@ void Player::on_profilesButton_clicked() {
 }
 
 void Player::on_profileListWidget_itemDoubleClicked(QListWidgetItem *item) {
-    PlayerPage *page = new PlayerPage(profileList->getProfile(item->text()));
-    Player *player   = new Player(page, true);
-    page->setUrl(QUrl::fromUserInput(PLAYER_WEBAPP_URL));
-    player->show();
+    new Player(profileList->getProfile(item->text()));
     toggleProfilesBar();
 }
